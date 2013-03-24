@@ -264,18 +264,24 @@ public class BattleField implements IMessageReceivedHandler {
 			case moveUnit:
 				System.out.println("BATTLEFIELD: MOVEUNIT");
 				reply = new Message();
-				/*Unit temptUnit = (Unit)msg.get("unit");
+				Unit tempUnit = (Unit)msg.get("unit");
+				/*
 				if(temptUnit == null) {
 					System.out.println("NULL");
 				}*/
-				this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+				boolean move = this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
 				reply.put("id", (Integer)msg.get("id"));
-				reply.put("x", (Integer)msg.get("x"));
-				reply.put("y", (Integer)msg.get("y"));
-
+				if(move) {
+					reply.put("x", (Integer)msg.get("x"));
+					reply.put("y", (Integer)msg.get("y"));
+				} else {
+					reply.put("x", tempUnit.getX());
+					reply.put("y", tempUnit.getY());
+				}
+		
 				return reply;
 				//break;
 			case removeUnit:
