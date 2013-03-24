@@ -15,8 +15,8 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 1;
-	public static final int MAX_PLAYER_COUNT = 1;
+	public static final int MIN_PLAYER_COUNT = 20;
+	public static final int MAX_PLAYER_COUNT = 20;
 	public static final int DRAGON_COUNT =1;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000; // In milliseconds
 	
@@ -71,7 +71,7 @@ public class Core {
 
 			final int finalX = x;
 			final int finalY = y;
-			System.out.println("CORE:" +finalX + " " +  finalY);
+			System.out.println("CORE:" + finalX + " " +  finalY);
 
 			/* Create the new player in a separate
 			 * thread, making sure it does not 

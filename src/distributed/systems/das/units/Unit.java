@@ -371,24 +371,25 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		clientSocket.sendMessageWitResponse();
 		
 		
-		
-		
 		// Wait for the reply
 		while(!messageList.containsKey(id))
 		{
-			setPosition(x, y);
-			System.out.println("SET POS");
-
+			//setPosition(x, y);
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
-
 			// Quit if the game window has closed
 			if (!GameState.getRunningState())
 				return;
 		}
+		
+		Message reply = messageList.get(id);
+		if(reply != null){
+			setPosition((Integer)reply.get("x"), (Integer)reply.get("y"));
+			System.out.println("SET POS");
 
+		}
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}

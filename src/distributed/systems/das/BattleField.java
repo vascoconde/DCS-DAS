@@ -147,10 +147,11 @@ public class BattleField implements IMessageReceivedHandler {
 	 * 
 	 * @return true on success.
 	 */
-	private synchronized boolean moveUnit(Unit unit, int newX, int newY)
+	private synchronized boolean moveUnit(Unit tUnit, int newX, int newY)
 	{
-		int originalX = unit.getX();
-		int originalY = unit.getY();
+		int originalX = tUnit.getX();
+		int originalY = tUnit.getY();
+		Unit unit = map[originalX][originalY];
 		System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -261,12 +262,20 @@ public class BattleField implements IMessageReceivedHandler {
 				break;
 			}
 			case moveUnit:
+				System.out.println("BATTLEFIELD: MOVEUNIT");
 				reply = new Message();
+				/*Unit temptUnit = (Unit)msg.get("unit");
+				if(temptUnit == null) {
+					System.out.println("NULL");
+				}*/
 				this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
-				reply.put("id", msg.get("id"));
+				reply.put("id", (Integer)msg.get("id"));
+				reply.put("x", (Integer)msg.get("x"));
+				reply.put("y", (Integer)msg.get("y"));
+
 				return reply;
 				//break;
 			case removeUnit:

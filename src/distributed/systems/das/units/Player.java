@@ -75,7 +75,7 @@ public class Player extends Unit implements Runnable, Serializable {
 			try {			
 				/* Sleep while the player is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
-				Thread.currentThread().sleep((int)(1000));
+				Thread.currentThread().sleep((int)(100));
 
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
