@@ -26,7 +26,7 @@ public class BattleField implements IMessageReceivedHandler {
 	private Unit[][] map;
 
 	/* The static singleton */
-	private static BattleField battlefield;
+	//private static BattleField battlefield;
 
 	/* Primary socket of the battlefield */ 
 	//private Socket serverSocket;
@@ -49,10 +49,10 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param width of the battlefield
 	 * @param height of the battlefield
 	 */
-	private BattleField(int width, int height) {
+	BattleField(String url, int port) {
 		
 		synchronized (this) {
-			map = new Unit[width][height];
+			map = new Unit[MAP_WIDTH][MAP_WIDTH];
 			serverSocket = new SynchronizedSocket(url, port);
 			serverSocket.addMessageReceivedHandler(this);
 			units = new ArrayList<Unit>();
@@ -66,11 +66,12 @@ public class BattleField implements IMessageReceivedHandler {
 	 * 
 	 * @return the battlefield.
 	 */
+	/*
 	public static BattleField getBattleField() {
 		if (battlefield == null)
 			battlefield = new BattleField(MAP_WIDTH, MAP_HEIGHT);
 		return battlefield;
-	}
+	}*/
 	
 	/**
 	 * Puts a new unit at the specified position. First, it
@@ -152,6 +153,7 @@ public class BattleField implements IMessageReceivedHandler {
 		int originalX = tUnit.getX();
 		int originalY = tUnit.getY();
 		Unit unit = map[originalX][originalY];
+		if(unit == null) return false;
 		System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;

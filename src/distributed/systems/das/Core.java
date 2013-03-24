@@ -15,16 +15,16 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 50;
-	public static final int MAX_PLAYER_COUNT = 80;
+	public static final int MIN_PLAYER_COUNT = 40;
+	public static final int MAX_PLAYER_COUNT = 40;
 	public static final int DRAGON_COUNT =10;
-	public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000; // In milliseconds
+	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield; 
 	public static int playerCount;
 
 	public static void main(String[] args) {
-		battlefield = BattleField.getBattleField();
+		battlefield = new BattleField("localhost", 50000);
 
 		/* All the dragons connect */
 		for(int i = 0; i < DRAGON_COUNT; i++) {
@@ -48,7 +48,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY);
+					new Dragon(finalX, finalY, battlefield.getNewUnitID());
 				}
 			}).start();
 
@@ -79,7 +79,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Player(finalX, finalY);
+					new Player(finalX, finalY, battlefield.getNewUnitID());
 				}
 			}).start();
 			
@@ -88,7 +88,7 @@ public class Core {
 		/* Spawn a new battlefield viewer */
 		new Thread(new Runnable() {
 			public void run() {
-				new BattleFieldViewer();
+				new BattleFieldViewer(battlefield);
 			}
 		}).start();
 		
@@ -118,7 +118,7 @@ public class Core {
 				final int finalY = y;
 
 				if (battlefield.getUnit(x, y) == null) {
-					new Player(finalX, finalY);
+					new Player(finalX, finalY, battlefield.getNewUnitID());
 					/* Create the new player in a separate
 					 * thread, making sure it does not 
 					 * block the system.
@@ -140,7 +140,7 @@ public class Core {
 		 * the socketmonitor close down.
 		 */
 		
-		BattleField.getBattleField().shutdown();
+		battlefield.shutdown();
 		System.exit(0); // Stop all running processes
 	}
 

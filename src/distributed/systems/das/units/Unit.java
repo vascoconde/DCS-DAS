@@ -76,7 +76,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @param maxHealth is the maximum health of 
 	 * this specific unit.
 	 */
-	public Unit(int maxHealth, int attackPoints) {
+	public Unit(int maxHealth, int attackPoints, int unitID) {
 
 		
 		messageList = new HashMap<Integer, Message>();
@@ -88,7 +88,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.attackPoints = new Integer(attackPoints);
 
 		// Get a new unit id
-		unitID = BattleField.getBattleField().getNewUnitID();
+		this.unitID = unitID;
 
 		// Create a new socket
 		//clientSocket = new SynchronizedClientSocket(message, address, handler)
