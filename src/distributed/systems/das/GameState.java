@@ -21,6 +21,7 @@ public class GameState {
 	 */
 	public static void haltProgram() {
 		running = false;
+		System.out.println("HALT PROGRAM");
 	}
 
 	/**

@@ -1,17 +1,15 @@
 package distributed.systems.das;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
+import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.Message;
+import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.Unit.UnitType;
-import distributed.systems.core.IMessageReceivedHandler;
-import distributed.systems.core.Message;
-import distributed.systems.core.Socket;
-import distributed.systems.core.SynchronizedSocket;
-import distributed.systems.core.exception.IDNotAssignedException;
-import distributed.systems.example.LocalSocket;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -31,8 +29,11 @@ public class BattleField implements IMessageReceivedHandler {
 	private static BattleField battlefield;
 
 	/* Primary socket of the battlefield */ 
-	private Socket serverSocket;
-	
+	//private Socket serverSocket;
+	private SynchronizedSocket serverSocket;
+	private String url = "localhost";
+	private int port = 50000;
+
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
 	 */
@@ -49,12 +50,10 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param height of the battlefield
 	 */
 	private BattleField(int width, int height) {
-		Socket local = new LocalSocket();
 		
 		synchronized (this) {
 			map = new Unit[width][height];
-			local.register(BattleField.serverID);
-			serverSocket = new SynchronizedSocket(local);
+			serverSocket = new SynchronizedSocket(url, port);
 			serverSocket.addMessageReceivedHandler(this);
 			units = new ArrayList<Unit>();
 		}
@@ -192,7 +191,8 @@ public class BattleField implements IMessageReceivedHandler {
 		return ++lastUnitID;
 	}
 
-	public void onMessageReceived(Message msg) {
+	public Message onMessageReceived(Message msg) {
+		System.out.println("MESSAGE RECEIVED:" + msg.get("request"));
 		Message reply = null;
 		String origin = (String)msg.get("origin");
 		MessageRequest request = (MessageRequest)msg.get("request");
@@ -216,7 +216,8 @@ public class BattleField implements IMessageReceivedHandler {
 				reply.put("id", msg.get("id"));
 				// Get the unit at the specific location
 				reply.put("unit", getUnit(x, y));
-				break;
+				return reply;
+				//break;
 			}
 			case getType:
 			{
@@ -232,7 +233,8 @@ public class BattleField implements IMessageReceivedHandler {
 				else if (getUnit(x, y) instanceof Dragon)
 					reply.put("type", UnitType.dragon);
 				else reply.put("type", UnitType.undefined);
-				break;
+				return reply; 
+				//break;
 			}
 			case dealDamage:
 			{
@@ -265,20 +267,29 @@ public class BattleField implements IMessageReceivedHandler {
 				 * what message the battlefield responded to. 
 				 */
 				reply.put("id", msg.get("id"));
-				break;
+				return reply;
+				//break;
 			case removeUnit:
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
-				return;
+				return null;
 		}
-
+		return null;
+		
+		//serverSocket.sendMessage(reply, origin);
+/*
 		try {
 			if (reply != null)
 				serverSocket.sendMessage(reply, origin);
 		}
-		catch(IDNotAssignedException idnae)  {
+		/*catch(IDNotAssignedException idnae)  {
 			// Could happen if the target already logged out
-		}
+		}*/
 	}
+	
+	public InetSocketAddress getAddress() {
+		return new InetSocketAddress(url, port);
+	}
+
 
 	/**
 	 * Close down the battlefield. Unregisters
@@ -292,7 +303,7 @@ public class BattleField implements IMessageReceivedHandler {
 			unit.stopRunnerThread();
 		}
 
-		serverSocket.unRegister();
+		//serverSocket.unRegister();
 	}
 	
 }

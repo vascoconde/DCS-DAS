@@ -70,9 +70,11 @@ public class Player extends Unit implements Runnable, Serializable {
 		this.running = true;
 
 		while(GameState.getRunningState() && this.running) {
+			System.out.println("LOOP");
 			try {			
 				/* Sleep while the player is considering its next move */
-				Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
+				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
+				Thread.currentThread().sleep((int)(1000));
 
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
@@ -118,7 +120,7 @@ public class Player extends Unit implements Runnable, Serializable {
 				}
 
 				// Get what unit lies in the target square
-				adjacentUnitType = this.getType(targetX, targetY);
+				//adjacentUnitType = this.getType(targetX, targetY);
 				
 				switch (adjacentUnitType) {
 					case undefined:
@@ -138,7 +140,8 @@ public class Player extends Unit implements Runnable, Serializable {
 				e.printStackTrace();
 			}
 		}
-		clientSocket.unRegister();
+		System.out.println("Exit Unit Loop");
+		//clientSocket.unRegister();
 	}
 
 }
