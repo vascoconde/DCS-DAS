@@ -31,17 +31,17 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	
 	// Position of the unit
-	protected int x, y;
+	protected Integer x, y;
 
 	// Health
-	private int maxHitPoints;
-	protected int hitPoints;
+	private Integer maxHitPoints;
+	protected Integer hitPoints;
 
 	// Attack points
-	protected int attackPoints;
+	protected Integer attackPoints;
 
 	// Identifier of the unit
-	private int unitID;
+	private Integer unitID;
 
 	// The communication socket between this client and the board
 	protected transient SynchronizedClientSocket clientSocket;
@@ -82,10 +82,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		messageList = new HashMap<Integer, Message>();
 
 		// Initialize the max health and health
-		hitPoints = maxHitPoints = maxHealth;
+		hitPoints = maxHitPoints = new Integer(maxHealth);
 
 		// Initialize the attack points
-		this.attackPoints = attackPoints;
+		this.attackPoints = new Integer(attackPoints);
 
 		// Get a new unit id
 		unitID = BattleField.getBattleField().getNewUnitID();
@@ -191,21 +191,21 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @param y is the new y coordinate
 	 */
 	public void setPosition(int x, int y) {
-		this.x = x;
-		this.y = y;
+		this.x = new Integer(x);
+		this.y = new Integer(y);
 	}
 
 	/**
 	 * @return the x position
 	 */
-	public int getX() {
+	public Integer getX() {
 		return x;
 	}
 
 	/**
 	 * @return the y position
 	 */
-	public int getY() {
+	public Integer getY() {
 		return y;
 	}
 
@@ -230,6 +230,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @return true iff the unit could spawn at the location on the battlefield
 	 */
 	protected boolean spawn(int x, int y) {
+		setPosition(x, y);
 		System.out.println("Spawn Message");
 		/* Create a new message, notifying the board
 		 * the unit has actually spawned at the
@@ -255,9 +256,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		clientSocket = new SynchronizedClientSocket(spawnMessage, battlefieldAddress, this);
 		clientSocket.sendMessage();
 
+		setPosition(x, y);
 
 		// Wait for the unit to be placed
-		//getUnit(x, y);
+		getUnit(x, y);
 		
 		return true;
 	}
@@ -353,6 +355,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	protected void moveUnit(int x, int y)
 	{
+
 		System.out.println("Move unit");
 		Message moveMessage = new Message();
 		int id = localMessageCounter++;
@@ -366,10 +369,16 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		//clientSocket.sendMessage(moveMessage, "localsocket://" + BattleField.serverID);
 		clientSocket = new SynchronizedClientSocket(moveMessage, battlefieldAddress, this);
 		clientSocket.sendMessageWitResponse();
-
+		
+		
+		
+		
 		// Wait for the reply
 		while(!messageList.containsKey(id))
 		{
+			setPosition(x, y);
+			System.out.println("SET POS");
+
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {

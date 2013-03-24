@@ -48,6 +48,7 @@ public class Dragon extends Unit implements Runnable, Serializable {
 
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
+		//setPosition(x, y);
 
 		/* Awaken the dragon */
 		//new Thread(this).start();
@@ -80,16 +81,16 @@ public class Dragon extends Unit implements Runnable, Serializable {
 					break;
 
 				// Decide what players are near
-				if (getY() > 0)
+				if (getY().intValue() > 0)
 					if ( getType( getX(), getY() - 1 ) == UnitType.player )
 						adjacentPlayers.add(Direction.up);
-				if (getY() < BattleField.MAP_WIDTH - 1)
+				if (getY().intValue() < BattleField.MAP_WIDTH - 1)
 					if ( getType( getX(), getY() + 1 ) == UnitType.player )
 						adjacentPlayers.add(Direction.down);
-				if (getX() > 0)
+				if (getX().intValue() > 0)
 					if ( getType( getX() - 1, getY() ) == UnitType.player )
 						adjacentPlayers.add(Direction.left);
-				if (getX() < BattleField.MAP_WIDTH - 1)
+				if (getX().intValue() < BattleField.MAP_WIDTH - 1)
 					if ( getType( getX() + 1, getY() ) == UnitType.player )
 						adjacentPlayers.add(Direction.right);
 				

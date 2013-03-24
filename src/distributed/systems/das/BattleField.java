@@ -151,7 +151,7 @@ public class BattleField implements IMessageReceivedHandler {
 	{
 		int originalX = unit.getX();
 		int originalY = unit.getY();
-
+		System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
 

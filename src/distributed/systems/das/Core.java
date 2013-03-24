@@ -71,6 +71,7 @@ public class Core {
 
 			final int finalX = x;
 			final int finalY = y;
+			System.out.println("CORE:" +finalX + " " +  finalY);
 
 			/* Create the new player in a separate
 			 * thread, making sure it does not 

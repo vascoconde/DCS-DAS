@@ -44,6 +44,7 @@ public class Player extends Unit implements Runnable, Serializable {
 
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
+		//setPosition(x, y);
 
 		/* Create a new player thread */
 		//new Thread(this).start();
@@ -86,7 +87,7 @@ public class Player extends Unit implements Runnable, Serializable {
 
 				switch (direction) {
 					case up:
-						if (this.getY() <= 0)
+						if (this.getY().intValue() <= 0)
 							// The player was at the edge of the map, so he can't move north and there are no units there
 							continue;
 						
@@ -94,15 +95,15 @@ public class Player extends Unit implements Runnable, Serializable {
 						targetY = this.getY() - 1;
 						break;
 					case down:
-						if (this.getY() >= BattleField.MAP_HEIGHT - 1)
+						if (this.getY().intValue() >= BattleField.MAP_HEIGHT - 1)
 							// The player was at the edge of the map, so he can't move south and there are no units there
 							continue;
 
 						targetX = this.getX();
-						targetY = this.getY() + 1;
+						targetY = this.getY().intValue() + 1;
 						break;
 					case left:
-						if (this.getX() <= 0)
+						if (this.getX().intValue() <= 0)
 							// The player was at the edge of the map, so he can't move west and there are no units there
 							continue;
 
@@ -110,7 +111,7 @@ public class Player extends Unit implements Runnable, Serializable {
 						targetY = this.getY();
 						break;
 					case right:
-						if (this.getX() >= BattleField.MAP_WIDTH - 1)
+						if (this.getX().intValue() >= BattleField.MAP_WIDTH - 1)
 							// The player was at the edge of the map, so he can't move east and there are no units there
 							continue;
 
@@ -120,7 +121,7 @@ public class Player extends Unit implements Runnable, Serializable {
 				}
 
 				// Get what unit lies in the target square
-				//adjacentUnitType = this.getType(targetX, targetY);
+				adjacentUnitType = this.getType(targetX, targetY);
 				
 				switch (adjacentUnitType) {
 					case undefined:
