@@ -71,7 +71,7 @@ public class Player extends Unit implements Runnable, Serializable {
 		this.running = true;
 
 		while(GameState.getRunningState() && this.running) {
-			System.out.println("LOOP");
+			//System.out.println("LOOP");
 			try {			
 				/* Sleep while the player is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));

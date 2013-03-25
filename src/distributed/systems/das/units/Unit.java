@@ -230,8 +230,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @return true iff the unit could spawn at the location on the battlefield
 	 */
 	protected boolean spawn(int x, int y) {
-		setPosition(x, y);
-		System.out.println("Spawn Message");
+		//setPosition(x, y);
+		System.out.println(unitID + ":Spawn Message:" + x + " " + y);
 		/* Create a new message, notifying the board
 		 * the unit has actually spawned at the
 		 * designated position. 
@@ -254,12 +254,30 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}*/
 		
 		clientSocket = new SynchronizedClientSocket(spawnMessage, battlefieldAddress, this);
-		clientSocket.sendMessage();
+		clientSocket.sendMessageWitResponse();
 
-		setPosition(x, y);
 
-		// Wait for the unit to be placed
-		getUnit(x, y);
+		
+		// Wait for the reply
+		while(!messageList.containsKey(id)) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+		}
+		Message result = messageList.get(id);
+		if(result != null){
+			if((Boolean)result.get("succeded") == true) {
+				//setPosition((Integer)result.get("x"), (Integer)result.get("y"));
+				setPosition(x, y);
+
+				System.out.println("SUCCEDED");
+				return true;
+			} else return false;
+			
+		}
+		// Remove the result from the messageList
+		messageList.put(id, null);
 		
 		return true;
 	}
@@ -356,7 +374,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected void moveUnit(int x, int y)
 	{
 
-		System.out.println("Move unit");
+		System.out.println(unitID+ ":Move unit:" + x + " " + y);
 		Message moveMessage = new Message();
 		int id = localMessageCounter++;
 		moveMessage.put("request", MessageRequest.moveUnit);
@@ -395,7 +413,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	public Message onMessageReceived(Message message) {
-		System.out.println("Unit receives message");
+		//System.out.println("Unit receives message");
 		messageList.put((Integer)message.get("id"), message);
 		return null;
 	}

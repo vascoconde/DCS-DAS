@@ -31,8 +31,8 @@ public class BattleField implements IMessageReceivedHandler {
 	/* Primary socket of the battlefield */ 
 	//private Socket serverSocket;
 	private SynchronizedSocket serverSocket;
-	private String url = "localhost";
-	private int port = 50000;
+	private String url;
+	private int port;
 
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
@@ -50,6 +50,8 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param height of the battlefield
 	 */
 	BattleField(String url, int port) {
+		this.url = url;
+		this.port = port;	
 		
 		synchronized (this) {
 			map = new Unit[MAP_WIDTH][MAP_WIDTH];
@@ -58,6 +60,21 @@ public class BattleField implements IMessageReceivedHandler {
 			units = new ArrayList<Unit>();
 		}
 		
+	}
+
+	BattleField(String url, int port, String otherUrl, int otherPort) {
+		this.url = url;
+		this.port = port;
+		
+		initBattleField();
+		
+	}
+	
+	private synchronized void initBattleField(){
+		map = new Unit[MAP_WIDTH][MAP_WIDTH];
+		serverSocket = new SynchronizedSocket(url, port);
+		serverSocket.addMessageReceivedHandler(this);
+		units = new ArrayList<Unit>();
 	}
 
 	/**
@@ -154,7 +171,7 @@ public class BattleField implements IMessageReceivedHandler {
 		int originalY = tUnit.getY();
 		Unit unit = map[originalX][originalY];
 		if(unit == null) return false;
-		System.out.println(originalX + " " + originalY + ":");
+		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
 
@@ -202,9 +219,15 @@ public class BattleField implements IMessageReceivedHandler {
 		Unit unit;
 		switch(request)
 		{
-			case spawnUnit:
-				this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
-				break;
+			case spawnUnit: {
+				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+				reply = new Message();
+				int x = (Integer)msg.get("x");
+				int y = (Integer)msg.get("y");
+				reply.put("id", msg.get("id"));
+				reply.put("succeded", succeded);
+				return reply;
+			}
 			case putUnit:
 				this.putUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				break;

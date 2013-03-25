@@ -15,16 +15,19 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 40;
-	public static final int MAX_PLAYER_COUNT = 40;
-	public static final int DRAGON_COUNT =10;
+	public static final int MIN_PLAYER_COUNT = 100;
+	public static final int MAX_PLAYER_COUNT = 100;
+	public static final int DRAGON_COUNT =20;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
-	public static BattleField battlefield; 
+	public static BattleField battlefield1; 
+	public static BattleField battlefield2; 
+
 	public static int playerCount;
 
 	public static void main(String[] args) {
-		battlefield = new BattleField("localhost", 50000);
+		battlefield1 = new BattleField("localhost", 50000);
+		battlefield2 = new BattleField("localhost", 50001);
 
 		/* All the dragons connect */
 		for(int i = 0; i < DRAGON_COUNT; i++) {
@@ -34,10 +37,10 @@ public class Core {
 				x = (int)(Math.random() * BattleField.MAP_WIDTH);
 				y = (int)(Math.random() * BattleField.MAP_HEIGHT);
 				attempt++;
-			} while (battlefield.getUnit(x, y) != null && attempt < 10);
+			} while (battlefield1.getUnit(x, y) != null && attempt < 10);
 
 			// If we didn't find an empty spot, we won't add a new dragon
-			if (battlefield.getUnit(x, y) != null) break;
+			if (battlefield1.getUnit(x, y) != null) break;
 			
 			final int finalX = x;
 			final int finalY = y;
@@ -48,7 +51,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY, battlefield.getNewUnitID());
+					new Dragon(finalX, finalY, battlefield1.getNewUnitID());
 				}
 			}).start();
 
@@ -64,14 +67,14 @@ public class Core {
 				x = (int)(Math.random() * BattleField.MAP_WIDTH);
 				y = (int)(Math.random() * BattleField.MAP_HEIGHT);
 				attempt++;
-			} while (battlefield.getUnit(x, y) != null && attempt < 10);
+			} while (battlefield1.getUnit(x, y) != null && attempt < 10);
 
 			// If we didn't find an empty spot, we won't add a new player
-			if (battlefield.getUnit(x, y) != null) break;
+			if (battlefield1.getUnit(x, y) != null) break;
 
 			final int finalX = x;
 			final int finalY = y;
-			System.out.println("CORE:" + finalX + " " +  finalY);
+			//System.out.println("CORE:" + finalX + " " +  finalY);
 
 			/* Create the new player in a separate
 			 * thread, making sure it does not 
@@ -79,7 +82,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Player(finalX, finalY, battlefield.getNewUnitID());
+					new Player(finalX, finalY, battlefield1.getNewUnitID());
 				}
 			}).start();
 			
@@ -88,7 +91,13 @@ public class Core {
 		/* Spawn a new battlefield viewer */
 		new Thread(new Runnable() {
 			public void run() {
-				new BattleFieldViewer(battlefield);
+				new BattleFieldViewer(battlefield1);
+			}
+		}).start();
+		/* Spawn a new battlefield viewer */
+		new Thread(new Runnable() {
+			public void run() {
+				new BattleFieldViewer(battlefield2);
 			}
 		}).start();
 		
@@ -109,16 +118,16 @@ public class Core {
 					x = (int)(Math.random() * BattleField.MAP_WIDTH);
 					y = (int)(Math.random() * BattleField.MAP_HEIGHT);
 					attempts++;
-				} while (battlefield.getUnit(x, y) != null && attempts < 10);
+				} while (battlefield1.getUnit(x, y) != null && attempts < 10);
 
 				// If we didn't find an empty spot, we won't add the new player
-				if (battlefield.getUnit(x, y) != null) continue;
+				if (battlefield1.getUnit(x, y) != null) continue;
 
 				final int finalX = x;
 				final int finalY = y;
 
-				if (battlefield.getUnit(x, y) == null) {
-					new Player(finalX, finalY, battlefield.getNewUnitID());
+				if (battlefield1.getUnit(x, y) == null) {
+					new Player(finalX, finalY, battlefield1.getNewUnitID());
 					/* Create the new player in a separate
 					 * thread, making sure it does not 
 					 * block the system.
@@ -140,7 +149,9 @@ public class Core {
 		 * the socketmonitor close down.
 		 */
 		
-		battlefield.shutdown();
+		battlefield1.shutdown();
+		battlefield2.shutdown();
+
 		System.exit(0); // Stop all running processes
 	}
 

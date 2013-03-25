@@ -46,7 +46,7 @@ public class SynchronizedClientSocket extends Thread  {
 		try {
 			//Send Message
 			out = new ObjectOutputStream(socket.getOutputStream());
-			System.out.println("Message about to be sent:" + message.get("request"));
+			//System.out.println("Message about to be sent:" + message.get("request"));
 			out.writeObject(message);
 			out.flush();
 		} catch (IOException e) {
