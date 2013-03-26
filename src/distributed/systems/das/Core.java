@@ -15,20 +15,47 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 100;
-	public static final int MAX_PLAYER_COUNT = 100;
-	public static final int DRAGON_COUNT =20;
+	public static final int MIN_PLAYER_COUNT = 5;
+	public static final int MAX_PLAYER_COUNT = 5;
+	public static final int DRAGON_COUNT =1;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield1; 
 	public static BattleField battlefield2; 
+	public static BattleField battlefield3; 
 
 	public static int playerCount;
 
 	public static void main(String[] args) {
 		battlefield1 = new BattleField("localhost", 50000);
-		battlefield2 = new BattleField("localhost", 50001);
-
+		battlefield2 = new BattleField("localhost", 50001, "localhost", 50000);
+		battlefield3 = new BattleField("localhost", 50002, "localhost", 50000);
+		
+		/* Spawn a new battlefield viewer */
+		new Thread(new Runnable() {
+			public void run() {
+				new BattleFieldViewer(battlefield1);
+			}
+		}).start();
+		/* Spawn a new battlefield viewer */
+		new Thread(new Runnable() {
+			public void run() {
+				new BattleFieldViewer(battlefield2);
+			}
+		}).start();
+		/* Spawn a new battlefield viewer */
+		new Thread(new Runnable() {
+			public void run() {
+				new BattleFieldViewer(battlefield3);
+			}
+		}).start();
+		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		/* All the dragons connect */
 		for(int i = 0; i < DRAGON_COUNT; i++) {
 			/* Try picking a random spot */
@@ -51,7 +78,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY, battlefield1.getNewUnitID());
+					new Dragon(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
 				}
 			}).start();
 
@@ -61,6 +88,13 @@ public class Core {
 		playerCount = (int)((MAX_PLAYER_COUNT - MIN_PLAYER_COUNT) * Math.random() + MIN_PLAYER_COUNT);
 		for(int i = 0; i < playerCount; i++)
 		{
+			/*
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
 			/* Once again, pick a random spot */
 			int x, y, attempt = 0;
 			do {
@@ -82,24 +116,13 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Player(finalX, finalY, battlefield1.getNewUnitID());
+					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
 				}
 			}).start();
 			
 		}
 
-		/* Spawn a new battlefield viewer */
-		new Thread(new Runnable() {
-			public void run() {
-				new BattleFieldViewer(battlefield1);
-			}
-		}).start();
-		/* Spawn a new battlefield viewer */
-		new Thread(new Runnable() {
-			public void run() {
-				new BattleFieldViewer(battlefield2);
-			}
-		}).start();
+		
 		
 		/* Add a random player every (5 seconds x GAME_SPEED) so long as the
 		 * maximum number of players to enter the battlefield has not been exceeded. 
@@ -127,7 +150,7 @@ public class Core {
 				final int finalY = y;
 
 				if (battlefield1.getUnit(x, y) == null) {
-					new Player(finalX, finalY, battlefield1.getNewUnitID());
+					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
 					/* Create the new player in a separate
 					 * thread, making sure it does not 
 					 * block the system.

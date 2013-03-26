@@ -7,5 +7,5 @@ package distributed.systems.das;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public enum MessageRequest {
-	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage,
+	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage, requestBFList, replyBFList, addBF
 }

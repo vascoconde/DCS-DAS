@@ -38,10 +38,10 @@ public class Dragon extends Unit implements Runnable, Serializable {
 	 * reaction speed 
 	 *
 	 */
-	public Dragon(int x, int y, int unitID) {
+	public Dragon(int x, int y, int unitID, String bfUrl, int bfPort) {
 		/* Spawn the dragon with a random number of hitpoints between
 		 * 50..100 and 5..20 attackpoints. */
-		super((int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), unitID);
+		super(bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), unitID);
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
@@ -74,7 +74,7 @@ public class Dragon extends Unit implements Runnable, Serializable {
 			try {
 				/* Sleep while the dragon is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
-				Thread.currentThread().sleep((int)(100));
+				Thread.currentThread().sleep((int)(200));
 
 				/* Stop if the dragon runs out of hitpoints */
 				if (getHitPoints() <= 0)

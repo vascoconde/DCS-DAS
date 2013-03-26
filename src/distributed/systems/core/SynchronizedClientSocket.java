@@ -7,6 +7,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import distributed.systems.das.units.Unit;
+
 //import distributed.systems.gridscheduler.model.ControlMessage;
 //import distributed.systems.gridscheduler.model.SyncLog;
 
@@ -34,12 +36,24 @@ public class SynchronizedClientSocket extends Thread  {
 		Message msg = null;
 		ObjectOutputStream out = null;
 		//Message message = null;
-
-		try {
-			socket.connect(address);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		int connTries = 0;
+		while(connTries < 2){
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				socket.connect(address);
+				break;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")).getUnitID());
+				e1.printStackTrace();
+				connTries++;
+				if(connTries >= 2) return;
+			}
 		}
 		
 		

@@ -2,9 +2,11 @@ package distributed.systems.das;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
+import distributed.systems.core.SynchronizedClientSocket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
@@ -43,6 +45,7 @@ public class BattleField implements IMessageReceivedHandler {
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
 	private ArrayList <Unit> units; 
+	private HashSet<InetSocketAddress> battlefields; 
 
 	/**
 	 * Initialize the battlefield to the specified size 
@@ -50,24 +53,27 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param height of the battlefield
 	 */
 	BattleField(String url, int port) {
+		battlefields = new HashSet<InetSocketAddress>();
 		this.url = url;
 		this.port = port;	
+		battlefields.add(new InetSocketAddress(url, port));
 		
-		synchronized (this) {
-			map = new Unit[MAP_WIDTH][MAP_WIDTH];
-			serverSocket = new SynchronizedSocket(url, port);
-			serverSocket.addMessageReceivedHandler(this);
-			units = new ArrayList<Unit>();
-		}
-		
+		initBattleField();		
 	}
 
 	BattleField(String url, int port, String otherUrl, int otherPort) {
+		battlefields = new HashSet<InetSocketAddress>();
 		this.url = url;
 		this.port = port;
-		
+		battlefields.add(new InetSocketAddress(url, port));
 		initBattleField();
 		
+		Message message = new Message();
+		message.put("request", MessageRequest.requestBFList);
+		message.put("bfAddress", new InetSocketAddress(url, port));
+		SynchronizedClientSocket clientSocket;
+		clientSocket = new SynchronizedClientSocket(message, new InetSocketAddress(otherUrl, otherPort), this);
+		clientSocket.sendMessageWitResponse();
 	}
 	
 	private synchronized void initBattleField(){
@@ -212,13 +218,51 @@ public class BattleField implements IMessageReceivedHandler {
 	}
 
 	public Message onMessageReceived(Message msg) {
-		System.out.println("MESSAGE RECEIVED:" + msg.get("request"));
+		//System.out.println("MESSAGE RECEIVED:" + msg.get("request"));
 		Message reply = null;
 		String origin = (String)msg.get("origin");
 		MessageRequest request = (MessageRequest)msg.get("request");
 		Unit unit;
 		switch(request)
 		{
+			case requestBFList: {
+				reply = new Message();
+				reply.put("request", MessageRequest.replyBFList);
+				battlefields.add((InetSocketAddress)msg.get("bfAddress"));
+				reply.put("bfList", battlefields);
+				return reply;
+			}
+			
+			case replyBFList: {
+				HashSet<InetSocketAddress> bfList = (HashSet<InetSocketAddress>)msg.get("bfList");
+				for(InetSocketAddress address: bfList) {
+					battlefields.add(address);
+				}
+				for(InetSocketAddress address: battlefields) {
+					SynchronizedClientSocket clientSocket;
+					Message message = new Message();
+					message.put("request", MessageRequest.addBF);
+					message.put("bfAddress", new InetSocketAddress(url, port));
+					clientSocket = new SynchronizedClientSocket(message,address, this);
+					clientSocket.sendMessage();
+				}
+				System.out.println("BATTLEFIELDS:"+ bfList.toString());
+				
+				//reply = new Message();
+				//HashSet bfList = (HashSet<InetSocketAddress>)msg.get("bfList");
+				//int y = (Integer)msg.get("y");
+				//reply.put("id", msg.get("id"));
+				return null;
+			}
+			
+			case addBF: {
+				battlefields.add((InetSocketAddress)msg.get("bfAddress"));
+				System.out.println("ADD BF:"+ battlefields.toString());
+
+				return null;
+			}
+
+		
 			case spawnUnit: {
 				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				reply = new Message();
@@ -226,10 +270,16 @@ public class BattleField implements IMessageReceivedHandler {
 				int y = (Integer)msg.get("y");
 				reply.put("id", msg.get("id"));
 				reply.put("succeded", succeded);
+				
+				if(!syncBF(msg)) return null;
+
 				return reply;
 			}
 			case putUnit:
 				this.putUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+				
+				if(!syncBF(msg)) return null;
+
 				break;
 			case getUnit:
 			{
@@ -242,6 +292,8 @@ public class BattleField implements IMessageReceivedHandler {
 				reply.put("id", msg.get("id"));
 				// Get the unit at the specific location
 				reply.put("unit", getUnit(x, y));
+				if(!syncBF(msg)) return null;
+
 				return reply;
 				//break;
 			}
@@ -259,6 +311,8 @@ public class BattleField implements IMessageReceivedHandler {
 				else if (getUnit(x, y) instanceof Dragon)
 					reply.put("type", UnitType.dragon);
 				else reply.put("type", UnitType.undefined);
+				if(!syncBF(msg)) return null;
+
 				return reply; 
 				//break;
 			}
@@ -272,7 +326,12 @@ public class BattleField implements IMessageReceivedHandler {
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
-				break;
+				reply = new Message();
+				reply.put("id", (Integer)msg.get("id"));
+				if(!syncBF(msg)) return null;
+
+				return reply;
+				//break;
 			}
 			case healDamage:
 			{
@@ -284,10 +343,16 @@ public class BattleField implements IMessageReceivedHandler {
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
-				break;
+				reply = new Message();
+				reply.put("id", (Integer)msg.get("id"));
+				if(!syncBF(msg)) return null;
+
+				return reply;
+
+				//break;
 			}
 			case moveUnit:
-				System.out.println("BATTLEFIELD: MOVEUNIT");
+				//System.out.println("BATTLEFIELD: MOVEUNIT");
 				reply = new Message();
 				Unit tempUnit = (Unit)msg.get("unit");
 				/*
@@ -306,12 +371,15 @@ public class BattleField implements IMessageReceivedHandler {
 					reply.put("x", tempUnit.getX());
 					reply.put("y", tempUnit.getY());
 				}
-		
+				if(!syncBF(msg)) return null;
+
+
 				return reply;
 				//break;
 			case removeUnit:
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
-				return null;
+				
+				if(!syncBF(msg)) return null;
 		}
 		return null;
 		
@@ -324,6 +392,26 @@ public class BattleField implements IMessageReceivedHandler {
 		/*catch(IDNotAssignedException idnae)  {
 			// Could happen if the target already logged out
 		}*/
+	}
+	
+	/**
+	 * 
+	 * @param message
+	 * @return true if sent sync messages, or false if the message was already a sync message.
+	 */
+	private boolean syncBF(Message message){
+		if((Boolean)message.get("sync") != null && (Boolean)message.get("sync") == true) {
+			return false;
+		}
+		for (InetSocketAddress address : battlefields) {
+			if(address.equals(new InetSocketAddress(url, port))) break;
+			message.put("sync", (Boolean)true);
+			SynchronizedClientSocket clientSocket;
+			clientSocket = new SynchronizedClientSocket(message, address, this);
+			clientSocket.sendMessage();
+		}
+		return true;
+		
 	}
 	
 	public InetSocketAddress getAddress() {
