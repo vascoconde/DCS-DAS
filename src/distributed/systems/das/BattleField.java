@@ -246,7 +246,7 @@ public class BattleField implements IMessageReceivedHandler {
 					clientSocket = new SynchronizedClientSocket(message,address, this);
 					clientSocket.sendMessage();
 				}
-				System.out.println("BATTLEFIELDS:"+ bfList.toString());
+				//System.out.println("BATTLEFIELDS:"+ bfList.toString());
 				
 				//reply = new Message();
 				//HashSet bfList = (HashSet<InetSocketAddress>)msg.get("bfList");
@@ -257,13 +257,16 @@ public class BattleField implements IMessageReceivedHandler {
 			
 			case addBF: {
 				battlefields.add((InetSocketAddress)msg.get("bfAddress"));
-				System.out.println("ADD BF:"+ battlefields.toString());
+				//System.out.println("ADD BF:"+ battlefields.toString());
 
 				return null;
 			}
 
 		
 			case spawnUnit: {
+				System.out.println("BATTLE FIELD:Spawn" + port);
+				System.out.println(battlefields.toString());
+
 				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				reply = new Message();
 				int x = (Integer)msg.get("x");
@@ -271,14 +274,14 @@ public class BattleField implements IMessageReceivedHandler {
 				reply.put("id", msg.get("id"));
 				reply.put("succeded", succeded);
 				
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				return reply;
 			}
 			case putUnit:
 				this.putUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				break;
 			case getUnit:
@@ -292,7 +295,7 @@ public class BattleField implements IMessageReceivedHandler {
 				reply.put("id", msg.get("id"));
 				// Get the unit at the specific location
 				reply.put("unit", getUnit(x, y));
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				return reply;
 				//break;
@@ -311,7 +314,7 @@ public class BattleField implements IMessageReceivedHandler {
 				else if (getUnit(x, y) instanceof Dragon)
 					reply.put("type", UnitType.dragon);
 				else reply.put("type", UnitType.undefined);
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				return reply; 
 				//break;
@@ -328,7 +331,7 @@ public class BattleField implements IMessageReceivedHandler {
 				 */
 				reply = new Message();
 				reply.put("id", (Integer)msg.get("id"));
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				return reply;
 				//break;
@@ -345,7 +348,7 @@ public class BattleField implements IMessageReceivedHandler {
 				 */
 				reply = new Message();
 				reply.put("id", (Integer)msg.get("id"));
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 				return reply;
 
@@ -371,7 +374,7 @@ public class BattleField implements IMessageReceivedHandler {
 					reply.put("x", tempUnit.getX());
 					reply.put("y", tempUnit.getY());
 				}
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 
 
 				return reply;
@@ -379,7 +382,7 @@ public class BattleField implements IMessageReceivedHandler {
 			case removeUnit:
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
 				
-				if(!syncBF(msg)) return null;
+				if(syncBF(msg)) return null;
 		}
 		return null;
 		
@@ -397,20 +400,20 @@ public class BattleField implements IMessageReceivedHandler {
 	/**
 	 * 
 	 * @param message
-	 * @return true if sent sync messages, or false if the message was already a sync message.
+	 * @return true if message is already a sync message, or false if the if it was not a sync message and it was propagated.
 	 */
 	private boolean syncBF(Message message){
 		if((Boolean)message.get("sync") != null && (Boolean)message.get("sync") == true) {
-			return false;
+			return true;
 		}
 		for (InetSocketAddress address : battlefields) {
-			if(address.equals(new InetSocketAddress(url, port))) break;
+			if(address.equals(new InetSocketAddress(url, port))) continue;
 			message.put("sync", (Boolean)true);
 			SynchronizedClientSocket clientSocket;
 			clientSocket = new SynchronizedClientSocket(message, address, this);
 			clientSocket.sendMessage();
 		}
-		return true;
+		return false;
 		
 	}
 	

@@ -78,9 +78,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * this specific unit.
 	 * @param unitID2 
 	 */
-	public Unit(String bfUrl, int gfPort, int maxHealth, int attackPoints, int unitID ) {
+	public Unit(String bfUrl, int bfPort, int maxHealth, int attackPoints, int unitID ) {
 
-		battlefieldAddress = new InetSocketAddress(bfUrl, gfPort);
+		battlefieldAddress = new InetSocketAddress(bfUrl, bfPort);
 		messageList = new HashMap<Integer, Message>();
 
 		// Initialize the max health and health

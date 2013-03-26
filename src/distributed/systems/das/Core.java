@@ -15,9 +15,9 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 5;
-	public static final int MAX_PLAYER_COUNT = 5;
-	public static final int DRAGON_COUNT =1;
+	public static final int MIN_PLAYER_COUNT = 10;
+	public static final int MAX_PLAYER_COUNT = 10;
+	public static final int DRAGON_COUNT =5;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield1; 
@@ -51,7 +51,7 @@ public class Core {
 		}).start();
 		
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -78,7 +78,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
+					new Dragon(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50002);
 				}
 			}).start();
 
@@ -116,7 +116,7 @@ public class Core {
 			 */
 			new Thread(new Runnable() {
 				public void run() {
-					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
+					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000 + playerCount%3);
 				}
 			}).start();
 			
@@ -151,16 +151,13 @@ public class Core {
 
 				if (battlefield1.getUnit(x, y) == null) {
 					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
-					/* Create the new player in a separate
-					 * thread, making sure it does not 
-					 * block the system.
-					 *
+					
 					new Thread(new Runnable() {
 						public void run() {
-							new Player(finalX, finalY);
+							new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000 + playerCount%3);
 						}
 					}).start();
-					*/
+					
 					playerCount++;
 				}
 			} catch (InterruptedException e) {
@@ -174,6 +171,7 @@ public class Core {
 		
 		battlefield1.shutdown();
 		battlefield2.shutdown();
+		battlefield3.shutdown();
 
 		System.exit(0); // Stop all running processes
 	}
