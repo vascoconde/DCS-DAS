@@ -5,15 +5,10 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.GameState;
-import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
-import distributed.systems.core.SynchronizedSocket;
-import distributed.systems.core.exception.AlreadyAssignedIDException;
-import distributed.systems.core.exception.IDNotAssignedException;
+import distributed.systems.das.MessageRequest;
 
 /**
  * Base class for all players whom can 
