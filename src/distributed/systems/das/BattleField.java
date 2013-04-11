@@ -3,6 +3,7 @@ package distributed.systems.das;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
@@ -35,6 +36,9 @@ public class BattleField implements IMessageReceivedHandler {
 	private SynchronizedSocket serverSocket;
 	private String url;
 	private int port;
+	
+	private Map<Integer, Message> messageList;
+
 
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
@@ -44,7 +48,9 @@ public class BattleField implements IMessageReceivedHandler {
 	public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
-	private ArrayList <Unit> units; 
+	//private ArrayList <Unit> units; 
+	private HashSet<InetSocketAddress> units; 
+
 	private HashSet<InetSocketAddress> battlefields; 
 
 	/**
@@ -80,7 +86,32 @@ public class BattleField implements IMessageReceivedHandler {
 		map = new Unit[MAP_WIDTH][MAP_WIDTH];
 		serverSocket = new SynchronizedSocket(url, port);
 		serverSocket.addMessageReceivedHandler(this);
-		units = new ArrayList<Unit>();
+		//units = new ArrayList<Unit>();
+		units = new HashSet<InetSocketAddress>();
+		
+		//Updates to game state
+		new Thread(new Runnable() {
+			public void run() {
+				SynchronizedClientSocket clientSocket;
+				while(true) {
+					
+					for( InetSocketAddress address : units) {
+						Message message = new Message();
+						message.put("request", MessageRequest.gameState);
+						message.put("gamestate", map);
+						clientSocket = new SynchronizedClientSocket(message, address, null);
+						clientSocket.sendMessage();	
+					}
+					
+					try {
+						Thread.sleep(100L);//Time between gameState update is sent to units
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}		
+				}
+			}
+		}).start();
+		
 	}
 
 	/**
@@ -118,7 +149,7 @@ public class BattleField implements IMessageReceivedHandler {
 			map[x][y] = unit;
 			unit.setPosition(x, y);
 		}
-		units.add(unit);
+		//units.add(unit);
 
 		return true;
 	}
@@ -268,9 +299,13 @@ public class BattleField implements IMessageReceivedHandler {
 				System.out.println(battlefields.toString());
 
 				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+				if(succeded) {
+					units.add((InetSocketAddress)msg.get("address"));	
+				}
+				
 				reply = new Message();
-				int x = (Integer)msg.get("x");
-				int y = (Integer)msg.get("y");
+				//int x = (Integer)msg.get("x");
+				//int y = (Integer)msg.get("y");
 				reply.put("id", msg.get("id"));
 				reply.put("succeded", succeded);
 				
@@ -362,12 +397,13 @@ public class BattleField implements IMessageReceivedHandler {
 				if(temptUnit == null) {
 					System.out.println("NULL");
 				}*/
+				
 				boolean move = this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
 				reply.put("id", (Integer)msg.get("id"));
-				if(move) {
+				if(move) { 
 					reply.put("x", (Integer)msg.get("x"));
 					reply.put("y", (Integer)msg.get("y"));
 				} else {
@@ -404,6 +440,7 @@ public class BattleField implements IMessageReceivedHandler {
 	 */
 	private boolean syncBF(Message message){
 		if((Boolean)message.get("sync") != null && (Boolean)message.get("sync") == true) {
+			
 			return true;
 		}
 		for (InetSocketAddress address : battlefields) {
@@ -429,10 +466,10 @@ public class BattleField implements IMessageReceivedHandler {
 	 */ 
 	public synchronized void shutdown() {
 		// Remove all units from the battlefield and make them disconnect from the server
-		for (Unit unit : units) {
+		/*for (Unit unit : units) {
 			unit.disconnect();
 			unit.stopRunnerThread();
-		}
+		}*/
 
 		//serverSocket.unRegister();
 	}

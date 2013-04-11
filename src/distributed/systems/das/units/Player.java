@@ -2,6 +2,7 @@ package distributed.systems.das.units;
 
 import java.io.Serializable;
 
+import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 
@@ -31,15 +32,19 @@ public class Player extends Unit implements Runnable, Serializable {
 	public static final int MIN_ATTACKPOINTS = 1;
 	public static final int MAX_ATTACKPOINTS = 10;
 
+	protected Unit[][] map;
+
+
+	
 	/**
 	 * Create a player, initialize both 
 	 * the hit and the attackpoints. 
 	 * @param bfUrl 
 	 * @param bfPort 
 	 */
-	public Player(int x, int y, int unitID, String bfUrl, int bfPort) {
+	public Player(int x, int y, int unitID, String url, int port, String bfUrl, int bfPort) {
 		/* Initialize the hitpoints and attackpoints */
-		super(bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), unitID);
+		super(url, port, bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), unitID);
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
@@ -47,6 +52,8 @@ public class Player extends Unit implements Runnable, Serializable {
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
 		//setPosition(x, y);
+		
+		
 
 		/* Create a new player thread */
 		//new Thread(this).start();

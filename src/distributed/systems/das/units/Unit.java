@@ -8,6 +8,7 @@ import java.util.Map;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
+import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.MessageRequest;
 
 /**
@@ -41,6 +42,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	// The communication socket between this client and the board
 	//protected transient SynchronizedClientSocket clientSocket;
 	
+	private transient SynchronizedSocket serverSocket;
+	private InetSocketAddress address;
+
 	// Map messages from their ids
 	private Map<Integer, Message> messageList;
 	// Is used for mapping an unique id to a message sent by this unit
@@ -48,6 +52,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	
 	// If this is set to false, the unit will return its run()-method and disconnect from the server
 	protected boolean running;
+	
+	private Unit[][] map;
 
 	/* The thread that is used to make the unit run in a separate thread.
 	 * We need to remember this thread to make sure that Java exits cleanly.
@@ -73,7 +79,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * this specific unit.
 	 * @param unitID2 
 	 */
-	public Unit(String bfUrl, int bfPort, int maxHealth, int attackPoints, int unitID ) {
+	public Unit(String url, int port, String bfUrl, int bfPort, int maxHealth, int attackPoints, int unitID ) {
 
 		battlefieldAddress = new InetSocketAddress(bfUrl, bfPort);
 		messageList = new HashMap<Integer, Message>();
@@ -99,6 +105,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 */
 		//clientSocket.addMessageReceivedHandler(this);
+		address = new InetSocketAddress(url, port);
+		serverSocket = new SynchronizedSocket(url, port);
+		serverSocket.addMessageReceivedHandler(this);	
 	}
 
 	/**
@@ -134,6 +143,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			damageMessage.put("request", MessageRequest.dealDamage);
 			damageMessage.put("x", x);
 			damageMessage.put("y", y);
+			damageMessage.put("address", y);
 			damageMessage.put("damage", damage);
 			damageMessage.put("id", id);
 		}
@@ -252,6 +262,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		spawnMessage.put("x", x);
 		spawnMessage.put("y", y);
 		spawnMessage.put("unit", this);
+		spawnMessage.put("address", address);
+
 		spawnMessage.put("id", id);
 
 		
@@ -389,9 +401,33 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	public Message onMessageReceived(Message message) {
+		
+		if ((MessageRequest)message.get("request") == MessageRequest.gameState) {
+			System.out.println("Games State update");
+			//Who am I?
+			map = (Unit[][])message.get("gamestate");
+			Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
+			System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
+			//Update this instance variables
+			
+		}
+		
 		//System.out.println("Unit receives message");
 		messageList.put((Integer)message.get("id"), message);
 		return null;
+	}
+	
+	//Return the unit in the map that is equal(same address) to this instance
+	//TODO Could be improved... like using a HashMap.
+	private Unit searchMapForThisUnit(Unit[][] map) {
+		for( int i = 0; i < map.length; i++) {
+			for( int j = 0; j < map[0].length; j++) {
+				if(map[i][j] == null) continue;
+				if(this.equals(map[i][j])) return map[i][j];
+			}
+		}
+		return null;
+		
 	}
 	
 	// Disconnects the unit from the battlefield by exiting its run-state
@@ -421,5 +457,15 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			assert(false) : "Unit stopRunnerThread was interrupted";
 		}
 		
+	}
+	
+	public InetSocketAddress getAddress(){
+		return address;
+	}
+	
+	//Unit is equal if it has the same address
+	public boolean equals(Object o) {
+		if(((Unit)o).getAddress().equals(address))return true;
+		return false;
 	}
 }

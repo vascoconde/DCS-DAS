@@ -15,9 +15,9 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 10;
-	public static final int MAX_PLAYER_COUNT = 10;
-	public static final int DRAGON_COUNT =5;
+	public static final int MIN_PLAYER_COUNT = 3;
+	public static final int MAX_PLAYER_COUNT = 3;
+	public static final int DRAGON_COUNT =2;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield1; 
@@ -76,9 +76,10 @@ public class Core {
 			 * thread, making sure it does not 
 			 * block the system.
 			 */
+			final int temp = i;
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50002);
+					new Dragon(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50050 + temp, "localhost", 50002);
 				}
 			}).start();
 
@@ -114,9 +115,12 @@ public class Core {
 			 * thread, making sure it does not 
 			 * block the system.
 			 */
+			final int temp = i;
 			new Thread(new Runnable() {
 				public void run() {
-					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000 + playerCount%3);
+					//TODO Ports have to be different for each player even when only connecting to different battlefields
+					//Now I'm just worried about all of them having different ports
+					new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50100 + temp, "localhost", 50000 + temp%3);
 				}
 			}).start();
 			
@@ -150,11 +154,11 @@ public class Core {
 				final int finalY = y;
 
 				if (battlefield1.getUnit(x, y) == null) {
-					new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000);
+					//new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50000 +playerCount, "localhost", 50000);
 					
 					new Thread(new Runnable() {
 						public void run() {
-							new Player(finalX, finalY, battlefield1.getNewUnitID(), "localhost", 50000 + playerCount%3);
+							//new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50000 +playerCount, "localhost", 50000 + playerCount%3);
 						}
 					}).start();
 					
