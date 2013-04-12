@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
@@ -49,7 +50,7 @@ public class BattleField implements IMessageReceivedHandler {
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
 	//private ArrayList <Unit> units; 
-	private HashSet<InetSocketAddress> units; 
+	private Map<InetSocketAddress, Integer> units; 
 
 	private HashSet<InetSocketAddress> battlefields; 
 
@@ -87,7 +88,7 @@ public class BattleField implements IMessageReceivedHandler {
 		serverSocket = new SynchronizedSocket(url, port);
 		serverSocket.addMessageReceivedHandler(this);
 		//units = new ArrayList<Unit>();
-		units = new HashSet<InetSocketAddress>();
+		units = new ConcurrentHashMap<InetSocketAddress, Integer>();
 		
 		//Updates to game state
 		new Thread(new Runnable() {
@@ -95,7 +96,7 @@ public class BattleField implements IMessageReceivedHandler {
 				SynchronizedClientSocket clientSocket;
 				while(true) {
 					
-					for( InetSocketAddress address : units) {
+					for( InetSocketAddress address : units.keySet()) {
 						Message message = new Message();
 						message.put("request", MessageRequest.gameState);
 						message.put("gamestate", map);
@@ -300,7 +301,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				if(succeded) {
-					units.add((InetSocketAddress)msg.get("address"));	
+					units.put((InetSocketAddress)msg.get("address"), 0);	
 				}
 				
 				reply = new Message();
