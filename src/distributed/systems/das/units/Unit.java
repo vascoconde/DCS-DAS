@@ -25,7 +25,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	//
 	private InetSocketAddress battlefieldAddress;
 
-	
 	// Position of the unit
 	protected Integer x, y;
 
@@ -152,7 +151,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		//clientSocket.sendMessage(damageMessage, "localsocket://" + BattleField.serverID);
 		SynchronizedClientSocket clientSocket;
 		clientSocket = new SynchronizedClientSocket(damageMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
+		clientSocket.sendMessage();
 		
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -185,9 +184,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		//clientSocket.sendMessage(healMessage, "localsocket://" + BattleField.serverID);
 		SynchronizedClientSocket clientSocket;
 		clientSocket = new SynchronizedClientSocket(healMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
+		clientSocket.sendMessage();
 		
-		waitForMessage(id);
+		//waitForMessage(id);
 
 	}
 
@@ -264,8 +263,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		spawnMessage.put("unit", this);
 		spawnMessage.put("address", address);
 
-		spawnMessage.put("id", id);
-
+		spawnMessage.put("id", 0);
+		
 		
 		/*// Send a spawn message
 		try {
@@ -276,10 +275,13 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}*/
 		SynchronizedClientSocket clientSocket;
 		clientSocket = new SynchronizedClientSocket(spawnMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
+		clientSocket.sendMessage();
 
-		waitForMessage(id);
+		System.out.println("BLOCK SPAWN");
 
+		waitForMessage(0);
+		System.out.println("UNLOCK SPAWN");
+/*
 		Message result = messageList.get(id);
 		if(result != null){
 			if((Boolean)result.get("succeded") == true) {
@@ -291,8 +293,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			} else return false;
 			
 		}
+		*/
 		// Remove the result from the messageList
-		messageList.put(id, null);
+		//messageList.put(0, null);
 		
 		return true;
 	}
@@ -303,53 +306,18 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @param y: y coordinate
 	 * @return UnitType: the indicated square contains a player, a dragon or nothing.
 	 */
-	protected UnitType getType(int x, int y) {
-		Message getMessage = new Message(), result;
-		int id = localMessageCounter++;
-		getMessage.put("request", MessageRequest.getType);
-		getMessage.put("x", x);
-		getMessage.put("y", y);
-		getMessage.put("id", id);
-		SynchronizedClientSocket clientSocket;
-		clientSocket = new SynchronizedClientSocket(getMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
-
-		// Send the getUnit message
-		//clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
-
-		waitForMessage(id);
-
-		result = messageList.get(id);
-		if (result == null) // Could happen if the game window had closed
-			return UnitType.undefined;
-		messageList.put(id, null);
+	public UnitType getType(int x, int y) {
 		
-		return (UnitType) result.get("type");	
-		
+		if (getUnit(x, y) instanceof Player)
+			return UnitType.player;
+		else if (getUnit(x, y) instanceof Dragon)
+			return UnitType.dragon;
+		else return UnitType.undefined;
 	}
 
 	protected Unit getUnit(int x, int y)
 	{
-		Message getMessage = new Message(), result;
-		int id = localMessageCounter++;
-		getMessage.put("request", MessageRequest.getUnit);
-		getMessage.put("x", x);
-		getMessage.put("y", y);
-		getMessage.put("id", id);
-
-		// Send the getUnit message
-		//clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
-		SynchronizedClientSocket clientSocket;
-		clientSocket = new SynchronizedClientSocket(getMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
-
-		// Wait for the reply
-		waitForMessage(id);
-
-		result = messageList.get(id);
-		messageList.put(id, null);
-
-		return (Unit) result.get("unit");	
+		return map[x][y];
 	}
 
 	protected void removeUnit(int x, int y)
@@ -379,25 +347,26 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		moveMessage.put("x", x);
 		moveMessage.put("y", y);
 		moveMessage.put("id", id);
-		moveMessage.put("unit", this);
+		moveMessage.put("address", this.getAddress());
 
 		// Send the getUnit message
 		//clientSocket.sendMessage(moveMessage, "localsocket://" + BattleField.serverID);
 		SynchronizedClientSocket clientSocket;
 		clientSocket = new SynchronizedClientSocket(moveMessage, battlefieldAddress, this);
-		clientSocket.sendMessageWitResponse();
+		//clientSocket.sendMessageWithResponse();
+		clientSocket.sendMessage();
+
 		
-		
-		waitForMessage(id);
-		
+		//waitForMessage(id);
+		/*
 		Message reply = messageList.get(id);
 		if(reply != null){
 			setPosition((Integer)reply.get("x"), (Integer)reply.get("y"));
 			//System.out.println("SET POS");
 
-		}
+		}*/
 		// Remove the result from the messageList
-		messageList.put(id, null);
+		//messageList.put(id, null);
 	}
 
 	public Message onMessageReceived(Message message) {
@@ -411,9 +380,15 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			//Update this instance variables
 			
 		}
+		if((MessageRequest)message.get("request") == MessageRequest.spawnAck) {
+			map = (Unit[][])message.get("gamestate");
+			Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
+			messageList.put(0, null);
+
+		}
 		
 		//System.out.println("Unit receives message");
-		messageList.put((Integer)message.get("id"), message);
+		//messageList.put((Integer)message.get("id"), message);
 		return null;
 	}
 	
@@ -423,11 +398,20 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		for( int i = 0; i < map.length; i++) {
 			for( int j = 0; j < map[0].length; j++) {
 				if(map[i][j] == null) continue;
-				if(this.equals(map[i][j])) return map[i][j];
+				if(this.equals(map[i][j])){
+					updateUnitState(map[i][j]);
+					return map[i][j];
+				}
 			}
 		}
 		return null;
 		
+	}
+	
+	private void updateUnitState(Unit u){
+		setPosition(u.getX(), u.getY());
+		this.attackPoints = u.getAttackPoints();
+		this.hitPoints = u.getHitPoints();
 	}
 	
 	// Disconnects the unit from the battlefield by exiting its run-state
@@ -437,7 +421,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	
 	void waitForMessage(int id) {
 		int tries = 0;
-		while(!messageList.containsKey(id) && tries < 10) {
+		while(!messageList.containsKey(id)) {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {

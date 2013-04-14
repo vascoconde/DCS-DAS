@@ -84,7 +84,7 @@ public class Player extends Unit implements Runnable, Serializable {
 			try {			
 				/* Sleep while the player is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
-				Thread.currentThread().sleep((int)(200));
+				Thread.currentThread().sleep((int)(400));
 
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
@@ -147,6 +147,8 @@ public class Player extends Unit implements Runnable, Serializable {
 						break;
 				}
 			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

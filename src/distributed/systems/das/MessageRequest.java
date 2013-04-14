@@ -4,8 +4,9 @@ package distributed.systems.das;
  * Different request types for the
  * nodes to send to the server.
  * 
- * @author Pieter Anemaet, Boaz Pat-El
  */
 public enum MessageRequest {
-	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage, requestBFList, replyBFList, addBF, ActionResponse, ActionConfirm, gameState
+	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage, requestBFList, replyBFList, addBF, spawnAck, SyncAction, SyncActionResponse, SyncActionConfirm, gameState
 }
+
+

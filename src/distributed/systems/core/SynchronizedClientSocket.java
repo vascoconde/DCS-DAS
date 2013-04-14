@@ -91,6 +91,17 @@ public class SynchronizedClientSocket extends Thread  {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}else{
+			/*
+			// Give the server time to read the data from the socket
+			while(socket.isConnected())
+			try {
+				Thread.sleep(10);
+			}
+			catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
 		}
 		
 		try {
@@ -123,7 +134,7 @@ public class SynchronizedClientSocket extends Thread  {
 	}*/
 
 	
-	public void sendMessageWitResponse() {
+	public void sendMessageWithResponse() {
 		requiresRepsonse = true;
 		Thread t = new Thread(this);
 		t.start();

@@ -12,7 +12,7 @@ public class Message implements Serializable {
 	public Message() {
 		attributes = new HashMap<String, Serializable>();
 	}
-	
+		
 	/**
 	 * 
 	 */
@@ -23,17 +23,14 @@ public class Message implements Serializable {
 	}
 
 	public void put(String key, Serializable value) {
-		// TODO Auto-generated method stub
 		attributes.put(key, value);
 	}
 	
 	public void put(String key, int value) {
-		// TODO Auto-generated method stub
 		attributes.put(key, Integer.valueOf(value));
 	}
 	
 	public void put(String key, Unit value) {
-		// TODO Auto-generated method stub
 		attributes.put(key, value);
 	}
 
