@@ -1,5 +1,7 @@
 package distributed.systems.core;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 
@@ -32,6 +34,16 @@ public class Message implements Serializable {
 	
 	public void put(String key, Unit value) {
 		attributes.put(key, value);
+	}
+	
+	public Message clone(){
+		Message m = new Message();
+		for(String a : attributes.keySet()) {
+			m.put(new String(a),attributes.get(a));
+		}
+		
+		return m;
+		
 	}
 
 

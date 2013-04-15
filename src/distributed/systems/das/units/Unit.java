@@ -376,7 +376,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			//Who am I?
 			map = (Unit[][])message.get("gamestate");
 			Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
-			System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
+			//System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
 			//Update this instance variables
 			
 		}

@@ -151,17 +151,15 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @return true when the unit has been put on the 
 	 * specified position.
 	 */
-	private boolean spawnUnit(Unit unit, int x, int y)
+	private boolean spawnUnit(Unit unit, InetSocketAddress address, int x, int y)
 	{
 		synchronized (this) {
 			if (map[x][y] != null)
 				return false;
-
 			map[x][y] = unit;
 			unit.setPosition(x, y);
+			units.put(address, unit);
 		}
-		//units.add(unit);
-
 		return true;
 	}
 
@@ -219,7 +217,8 @@ public class BattleField implements IMessageReceivedHandler {
 		int originalY = tUnit.getY();
 		Unit unit = map[originalX][originalY];
 		if(unit == null || !unit.equals(tUnit)) return false;
-		//if(Math.abs(originalX - newX) > 1 || Math.abs(originalY - newY) > 1) return false;
+		// TODO Limitar movimentos diagonais
+		if(Math.abs(originalX - newX) > 1 || Math.abs(originalY - newY) > 1) return false;
 		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -269,7 +268,7 @@ public class BattleField implements IMessageReceivedHandler {
 		if((Boolean)msg.get("sync") != null && (Boolean)msg.get("sync") == true) {
 			System.out.println("SYNC MESSAGE RECEIVED " + (MessageRequest)msg.get("request"));
 			processSyncMessage(msg);
-			
+
 		} else {
 			MessageRequest request = (MessageRequest)msg.get("request");
 			Message reply = null;
@@ -282,7 +281,7 @@ public class BattleField implements IMessageReceivedHandler {
 			case moveUnit:
 			case dealDamage:
 			case healDamage:
-				syncBF(msg);
+				syncActionWithBattlefields(msg);
 				System.out.println("Mandou sync pa toda agente");
 				break;
 			case requestBFList: {
@@ -348,125 +347,144 @@ public class BattleField implements IMessageReceivedHandler {
 		}*/
 	}
 
+	private Message processEvent(Message msg, ActionInfo removeAction) {
+		Unit unit = null;
+		switch ((MessageRequest)removeAction.message.get("request")) {
+
+		case spawnUnit: {
+			System.out.println("BATTLE FIELD:Spawn" + port);
+			System.out.println(battlefields.toString());
+
+			Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (InetSocketAddress)msg.get("address"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+			if(succeded) {
+				units.put((InetSocketAddress)msg.get("address"), (Unit)msg.get("unit"));	
+			}
+			Message reply = new Message();
+			reply.put("request", MessageRequest.spawnAck);
+			reply.put("succeded", succeded);
+			reply.put("gamestate", map);
+			return reply;
+
+		}
+		case dealDamage: {
+
+			int x = (Integer)msg.get("x");
+			int y = (Integer)msg.get("y");
+			unit = this.getUnit(x, y);
+			if (unit != null)
+				unit.adjustHitPoints( -(Integer)msg.get("damage") );
+			/* Copy the id of the message so that the unit knows 
+			 * what message the battlefield responded to. 
+			 */
+			break;
+		}
+		case healDamage:
+		{
+			int x = (Integer)msg.get("x");
+			int y = (Integer)msg.get("y");
+			unit = this.getUnit(x, y);
+			if (unit != null)
+				unit.adjustHitPoints( (Integer)msg.get("healed") );
+			/* Copy the id of the message so that the unit knows 
+			 * what message the battlefield responded to. 
+			 */
+
+			break;
+		}
+		case moveUnit:
+		{
+
+			System.out.println("BATTLEFIELD: MOVEUNIT");
+			Unit tempUnit = (Unit)msg.get("unit");
+			/*
+			if(temptUnit == null) {
+				System.out.println("NULL");
+			}*/
+
+			boolean move = this.moveUnit(units.get((InetSocketAddress)msg.get("address")), (Integer)msg.get("x"), (Integer)msg.get("y"));
+			if(!move) System.out.println("MOVE CANCELED");
+
+			/* Copy the id of the message so that the unit knows 
+			 * what message the battlefield responded to. 
+			 */
+			break;
+		}
+		default:
+			break;
+		}
+		return null;
+	}
+
 	private synchronized Message processConfirmMessage(Message msg) {
 		Integer messageID = (Integer)msg.get("serverMessageID");
-		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("address")));			
+		System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
+		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
+		removeAction.timer.cancel();
+		System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
 		if((Boolean)msg.get("confirm") && removeAction != null) {
-			Unit unit = null;
-			switch ((MessageRequest)removeAction.message.get("request")) {
-
-			case spawnUnit: {
-				System.out.println("BATTLE FIELD:Spawn" + port);
-				System.out.println(battlefields.toString());
-
-				Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
-				if(succeded) {
-					units.put((InetSocketAddress)msg.get("address"), (Unit)msg.get("unit"));	
-				}
-				Message reply = new Message();
-				reply.put("request", MessageRequest.spawnAck);
-				reply.put("succeded", succeded);
-				reply.put("gamestate", map);
-				return reply;
-
-			}
-			case dealDamage: {
-
-				int x = (Integer)msg.get("x");
-				int y = (Integer)msg.get("y");
-				unit = this.getUnit(x, y);
-				if (unit != null)
-					unit.adjustHitPoints( -(Integer)msg.get("damage") );
-				/* Copy the id of the message so that the unit knows 
-				 * what message the battlefield responded to. 
-				 */
-				break;
-			}
-			case healDamage:
-			{
-				int x = (Integer)msg.get("x");
-				int y = (Integer)msg.get("y");
-				unit = this.getUnit(x, y);
-				if (unit != null)
-					unit.adjustHitPoints( (Integer)msg.get("healed") );
-				/* Copy the id of the message so that the unit knows 
-				 * what message the battlefield responded to. 
-				 */
-
-				break;
-			}
-			case moveUnit:
-			{
-
-				System.out.println("BATTLEFIELD: MOVEUNIT");
-				Unit tempUnit = (Unit)msg.get("unit");
-				/*
-				if(temptUnit == null) {
-					System.out.println("NULL");
-				}*/
-
-				boolean move = this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
-				if(!move) System.out.println("MOVE CANCELED");
-
-				/* Copy the id of the message so that the unit knows 
-				 * what message the battlefield responded to. 
-				 */
-				break;
-			}
-			default:
-				break;
-			}
+			processEvent(msg,removeAction);
 		}
 		return null;
 
 	}
 
-	private synchronized void processResponseMessage(Message msg) {
+	private synchronized Message processResponseMessage(Message msg) {
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		ActionInfo actionInfo =  pendingOwnActions.get(messageID);
+		InetSocketAddress serverAddress = (InetSocketAddress)msg.get("serverAddress");
 
-		Message message = new Message();
+		Message message = msg.clone();
 		message.put("request", MessageRequest.SyncActionConfirm);
-		message.put("address", new InetSocketAddress(url, port));
-		message.put("id", messageID);
+		message.put("serverAddress", new InetSocketAddress(url, port));
+		message.put("serverMessageID", messageID);
 
 		if(actionInfo != null) {
 			if((Boolean)msg.get("ack")) {
-				actionInfo.ackReceived.add((InetSocketAddress)msg.get("address")); 
-				if(actionInfo.ackReceived.size() == battlefields.size()) {
+				System.out.println("[S"+port+"] "+actionInfo.message.get("address")+" ACK TRUE from "+serverAddress.getHostName()+":"+serverAddress.getPort()+" Adding info to queue.");
+				actionInfo.ackReceived.add((InetSocketAddress)msg.get("serverAddress")); 
+				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
 						clientSocket.sendMessage();
 
 					}
-					pendingOwnActions.remove(messageID).timer.cancel();
+					ActionInfo removeAction = pendingOwnActions.remove(messageID);
+					removeAction.timer.cancel();
+					Message toPlayer = processEvent(msg, removeAction);
+					SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);
+					clientSocket.sendMessage();
 				}
 			} else {
 				pendingOwnActions.remove(messageID).timer.cancel();
 				message.put("confirm", false);
-				SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, (InetSocketAddress)msg.get("address"), this);
+				SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, serverAddress, this);
 				clientSocket.sendMessage();
 
 			}
 
 		} else {
 			message.put("confirm", false);
-			SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, (InetSocketAddress)msg.get("address"), this);
+			SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, serverAddress, this);
 			clientSocket.sendMessage();
 		}
+		return null;
 
 	}
 
 	private synchronized void processSyncMessage(Message msg) {
-		MessageRequest request = (MessageRequest)msg.get("request");
-		Message reply = null;
-		Unit unit = units.get((InetSocketAddress)msg.get("address"));
 
+		MessageRequest request = (MessageRequest)msg.get("request");
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		InetSocketAddress originAddress = (InetSocketAddress)msg.get("address");
+		InetSocketAddress serverAddress = (InetSocketAddress)msg.get("serverAddress");
 		Integer x = (Integer)msg.get("x");
 		Integer y = (Integer)msg.get("y");
+
+		msg.put("sync", (Boolean)false);
+
+		System.out.println("[S"+port+"] Process Sync Message from "+serverAddress.getPort()+"\n Message "+request.name()+" with X="+x+"|Y="+y);
+
 		boolean conflictFound = false; 
 		Set<InetSocketAddress> toRemoveTemp = new HashSet<InetSocketAddress>();
 		switch(request) {
@@ -501,18 +519,17 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 
 			if(conflictFound) {
-				sendActionAck(msg, false, messageID, originAddress);
+				sendActionAck(msg, false, messageID, serverAddress);
 			} else {
-				addPendingOutsideAction(msg, messageID, originAddress);
-				sendActionAck(msg, true, messageID, originAddress);
+				addPendingOutsideAction(msg, messageID, serverAddress);
+				sendActionAck(msg, true, messageID, serverAddress);
 			}
-
-
 
 			break;
 
 		case moveUnit:
 			if (getUnit(x, y) == null){
+				Unit unit = units.get((InetSocketAddress)msg.get("address"));
 				for(ActionInfo info : pendingOwnActions.values()){
 					MessageRequest actionType = (MessageRequest)info.message.get("request");
 					if(actionType == MessageRequest.moveUnit || actionType == MessageRequest.spawnUnit){
@@ -542,13 +559,13 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 
 			if(conflictFound) {
-				sendActionAck(msg, false, messageID, originAddress);
+				sendActionAck(msg, false, messageID, serverAddress);
 			} else {
 				for(InetSocketAddress addressToRemove : toRemoveTemp) {
 					pendingOwnActions.remove(addressToRemove).timer.cancel();
 				}
-				addPendingOutsideAction(msg, messageID, originAddress);
-				sendActionAck(msg, true, messageID, originAddress);
+				addPendingOutsideAction(msg, messageID, serverAddress);
+				sendActionAck(msg, true, messageID, serverAddress);
 			}
 
 			break;
@@ -581,27 +598,28 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 
 			if(conflictFound) {
-				sendActionAck(msg, false, messageID, originAddress);
+				sendActionAck(msg, false, messageID, serverAddress);
 			} else {
 				for(InetSocketAddress addressToRemove : toRemoveTemp) {
 					pendingOwnActions.remove(addressToRemove).timer.cancel();
 				}
-				addPendingOutsideAction(msg, messageID, originAddress);
-				sendActionAck(msg, true, messageID, originAddress);
+				addPendingOutsideAction(msg, messageID, serverAddress);
+				sendActionAck(msg, true, messageID, serverAddress);
 			}
 			break;
 
 		}
 	}
 
-	private void sendActionAck(Message message ,boolean valid, Integer messageID, InetSocketAddress originAddress) {
-		Message outMessage = new Message();
-		outMessage.put("request", MessageRequest.SyncActionResponse);
-		outMessage.put("ack", (Boolean)valid);
-		outMessage.put("address", new InetSocketAddress(url, port));
-		outMessage.put("serverMessageID", messageID);
+	private void sendActionAck(Message message ,boolean valid, Integer messageID, InetSocketAddress address) {
 
-		SynchronizedClientSocket socket = new SynchronizedClientSocket(message, originAddress, this);
+		Message toSend = new Message();
+		toSend = message.clone();
+		toSend.put("request", MessageRequest.SyncActionResponse);
+		toSend.put("serverAddress", (InetSocketAddress)new InetSocketAddress(url,port));
+		toSend.put("ack", (Boolean)valid);
+
+		SynchronizedClientSocket socket = new SynchronizedClientSocket(toSend, address, this);
 		socket.sendMessage();
 	}
 
@@ -611,14 +629,17 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @return true if message is already a sync message, or false if the if it was not a sync message and it was propagated.
 	 */
 	private boolean syncBF(Message message){
-		
 		for (InetSocketAddress address : battlefields) {
 			if(address.equals(new InetSocketAddress(url, port))) continue;
 			message.put("sync", (Boolean)true);
+			String s = "[S"+port+"] SENDING SYNC MESSAGE\nBefore change: "+message.get("address")+"\nAfter Change: ";
+			message.put("address", new InetSocketAddress(url,port));
+			s+= message.get("address");
+			System.out.println(s);
+			System.out.println("####################");
 			SynchronizedClientSocket clientSocket;
 			clientSocket = new SynchronizedClientSocket(message, address, this);
 			clientSocket.sendMessage();
-
 			//messageList.put(message, 0);
 		}
 		return false;
@@ -627,6 +648,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private void addPendingOutsideAction(Message message, Integer messageID, InetSocketAddress originAddress) {
 		Timer timer = new Timer();
+		System.out.println("Adding to OUTSIDE ACTION | Message type: "+message.get("request"));
 		pendingOutsideActions.put(new ActionID(messageID, originAddress), new ActionInfo(message, timer, false));
 		timer.schedule(new ScheduledTask(), timeout);
 	}
@@ -634,9 +656,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 	public synchronized void syncActionWithBattlefields(Message message) {
 		Timer timer = new Timer();
-
 		pendingOwnActions.put(++localMessageCounter, new ActionInfo(message, timer, true));
-		message.put("serverMessageID", localMessageCounter);
 		sendSyncMessage(message);
 		timer.schedule(new ScheduledTask(), timeout);
 	}
@@ -646,7 +666,6 @@ public class BattleField implements IMessageReceivedHandler {
 		message.put("sync", (Boolean)true);
 		message.put("serverAddress", new InetSocketAddress(url, port));
 		message.put("serverMessageID", localMessageCounter);
-
 		for (InetSocketAddress address : battlefields) {
 			if(address.equals(new InetSocketAddress(url, port))) continue;
 			clientSocket = new SynchronizedClientSocket(message, address, this);
@@ -699,12 +718,21 @@ public class BattleField implements IMessageReceivedHandler {
 		public ActionID(Integer messageId, InetSocketAddress address) {
 			this.messageId = messageId;
 			this.address = address;
+		}
 
+		public String toString() {
+			return "["+messageId+" "+address+"]";
 		}
 
 		@Override
 		public boolean equals(Object o) {
 			return address.equals(((ActionID)o).address) && messageId.equals(((ActionID)o).messageId) ;
+		}
+
+
+		@Override
+		public int hashCode() {
+			return address.hashCode() + messageId.hashCode() ;
 		}
 
 	}
