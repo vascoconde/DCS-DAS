@@ -376,15 +376,18 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			System.out.println("Games State update");
 			//Who am I?
 			map = (Unit[][])message.get("gamestate");
-			Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
-			//Unit u = map[(Integer)message.get("x")][(Integer)message.get("y")];//Could return null if it isn't in the map anymore
-			//System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
+			//Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
+			Unit u = (Unit)message.get("unit");//Could return null if it isn't in the map anymore
+			updateUnitState(u);
+			System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
 			//Update this instance variables
 			
 		}
 		if((MessageRequest)message.get("request") == MessageRequest.spawnAck) {
 			map = (Unit[][])message.get("gamestate");
-			Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
+			Unit u = (Unit)message.get("unit");//Could return null if it isn't in the map anymore
+			updateUnitState(u);
+
 			messageList.put(0, null);
 
 		}

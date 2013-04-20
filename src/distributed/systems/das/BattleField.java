@@ -112,10 +112,8 @@ public class BattleField implements IMessageReceivedHandler {
 						message.put("gamestate", map);
 						//Puts position of the unit we are sending to in the map we are sending
 						Unit u = units.get(address);
-						if(u != null) {
-							message.put("x",  u.getX());
-							message.put("y", u.getY());
-						}
+						message.put("unit",  u);
+						
 						clientSocket = new SynchronizedClientSocket(message, address, null);
 						clientSocket.sendMessage();	
 					}
@@ -371,10 +369,7 @@ public class BattleField implements IMessageReceivedHandler {
 			reply.put("gamestate", map);
 			//Puts position of the unit we are sending to in the map we are sending
 			Unit u = units.get((InetSocketAddress)msg.get("address"));
-			if(u != null) {
-				reply.put("x",  u.getX());
-				reply.put("y", u.getY());
-			}
+			reply.put("unit",  u);
 			return reply;
 
 		}
