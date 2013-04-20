@@ -110,6 +110,12 @@ public class BattleField implements IMessageReceivedHandler {
 						Message message = new Message();
 						message.put("request", MessageRequest.gameState);
 						message.put("gamestate", map);
+						//Puts position of the unit we are sending to in the map we are sending
+						Unit u = units.get(address);
+						if(u != null) {
+							message.put("x",  u.getX());
+							message.put("y", u.getY());
+						}
 						clientSocket = new SynchronizedClientSocket(message, address, null);
 						clientSocket.sendMessage();	
 					}
@@ -363,6 +369,12 @@ public class BattleField implements IMessageReceivedHandler {
 			reply.put("request", MessageRequest.spawnAck);
 			reply.put("succeded", succeded);
 			reply.put("gamestate", map);
+			//Puts position of the unit we are sending to in the map we are sending
+			Unit u = units.get((InetSocketAddress)msg.get("address"));
+			if(u != null) {
+				reply.put("x",  u.getX());
+				reply.put("y", u.getY());
+			}
 			return reply;
 
 		}
@@ -540,7 +552,7 @@ public class BattleField implements IMessageReceivedHandler {
 						} 
 					} else if(actionType == MessageRequest.healDamage || actionType == MessageRequest.dealDamage) {
 						if(unit.getX().equals((Integer)info.message.get("x")) && unit.getY().equals((Integer)info.message.get("y"))) {
-							toRemoveTemp.add((InetSocketAddress)info.message.get("serverMessageID"));
+							toRemoveTemp.add((InetSocketAddress)info.message.get("serverAddress"));
 						}
 					}
 				}
@@ -563,7 +575,8 @@ public class BattleField implements IMessageReceivedHandler {
 				sendActionAck(msg, false, messageID, serverAddress);
 			} else {
 				for(InetSocketAddress addressToRemove : toRemoveTemp) {
-					pendingOwnActions.remove(addressToRemove).timer.cancel();
+					ActionInfo info = pendingOwnActions.remove(addressToRemove);
+					info.timer.cancel();
 				}
 				addPendingOutsideAction(msg, messageID, serverAddress);
 				sendActionAck(msg, true, messageID, serverAddress);
