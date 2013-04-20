@@ -419,11 +419,12 @@ public class BattleField implements IMessageReceivedHandler {
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
-		removeAction.timer.cancel();
-		System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
-		if((Boolean)msg.get("confirm") && removeAction != null) {
-			processEvent(msg,removeAction);
+		if(removeAction != null) {
+			removeAction.timer.cancel();
+			System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
+			if((Boolean)msg.get("confirm")) processEvent(msg,removeAction);
 		}
+		
 		return null;
 
 	}

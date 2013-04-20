@@ -45,6 +45,11 @@ public class Message implements Serializable {
 		return m;
 		
 	}
+	
+	public String toString() {
+		return attributes.toString();
+		
+	}
 
 
 }

@@ -370,7 +370,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	public Message onMessageReceived(Message message) {
-		
+		System.out.println("UNIT MSG RCV:" + message.toString());
 		if ((MessageRequest)message.get("request") == MessageRequest.gameState) {
 			System.out.println("Games State update");
 			//Who am I?
