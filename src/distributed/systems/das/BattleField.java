@@ -162,6 +162,7 @@ public class BattleField implements IMessageReceivedHandler {
 			if (map[x][y] != null)
 				return false;
 			map[x][y] = unit;
+			//unit.setRunning(false);
 			unit.setPosition(x, y);
 			units.put(address, unit);
 		}
@@ -223,7 +224,7 @@ public class BattleField implements IMessageReceivedHandler {
 		Unit unit = map[originalX][originalY];
 		if(unit == null || !unit.equals(tUnit)) return false;
 		// TODO Limitar movimentos diagonais
-		//if((Math.abs(originalX - newX) > 1 && Math.abs(originalY - newY) != 0)|| (Math.abs(originalY - newY) > 1 && Math.abs(originalX - newX) != 0)) return false;
+		//if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) return false;
 		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -540,7 +541,15 @@ public class BattleField implements IMessageReceivedHandler {
 
 		case moveUnit:
 			if (getUnit(x, y) == null){
+				
 				Unit unit = units.get((InetSocketAddress)msg.get("address"));
+				if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) {
+					conflictFound = true;
+				}
+					
+				
+
+
 				for(ActionInfo info : pendingOwnActions.values()){
 					MessageRequest actionType = (MessageRequest)info.message.get("request");
 					if(actionType == MessageRequest.moveUnit || actionType == MessageRequest.spawnUnit){

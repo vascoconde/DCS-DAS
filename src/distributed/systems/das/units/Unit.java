@@ -458,6 +458,16 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public InetSocketAddress getBattlefieldAddress() {
 		return battlefieldAddress;
 	}
+	
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+
+	
 	//Unit is equal if it has the same address
 	public boolean equals(Object o) {
 		if(((Unit)o).getAddress().equals(address))return true;
