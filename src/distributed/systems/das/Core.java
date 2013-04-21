@@ -15,9 +15,9 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 6;
-	public static final int MAX_PLAYER_COUNT = 6;
-	public static final int DRAGON_COUNT =1;
+	public static final int MIN_PLAYER_COUNT = 5;
+	public static final int MAX_PLAYER_COUNT = 5;
+	public static final int DRAGON_COUNT =5;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield1; 

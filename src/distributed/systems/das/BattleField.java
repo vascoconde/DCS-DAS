@@ -106,15 +106,16 @@ public class BattleField implements IMessageReceivedHandler {
 				SynchronizedClientSocket clientSocket;
 				while(true) {
 
-					for( InetSocketAddress address : units.keySet()) {
+					for( Map.Entry<InetSocketAddress, Unit> entry : units.entrySet()) {
+						if(!entry.getValue().getBattlefieldAddress().equals(new InetSocketAddress(url, port))) continue;
 						Message message = new Message();
 						message.put("request", MessageRequest.gameState);
 						message.put("gamestate", map);
 						//Puts position of the unit we are sending to in the map we are sending
-						Unit u = units.get(address);
+						Unit u = entry.getValue();
 						message.put("unit",  u);
 
-						clientSocket = new SynchronizedClientSocket(message, address, null);
+						clientSocket = new SynchronizedClientSocket(message, entry.getKey(), null);
 						clientSocket.sendMessage();	
 					}
 
@@ -222,7 +223,7 @@ public class BattleField implements IMessageReceivedHandler {
 		Unit unit = map[originalX][originalY];
 		if(unit == null || !unit.equals(tUnit)) return false;
 		// TODO Limitar movimentos diagonais
-		if((Math.abs(originalX - newX) > 1 && Math.abs(originalY - newY) != 0)|| (Math.abs(originalY - newY) > 1 && Math.abs(originalX - newX) != 0)) return false;
+		//if((Math.abs(originalX - newX) > 1 && Math.abs(originalY - newY) != 0)|| (Math.abs(originalY - newY) > 1 && Math.abs(originalX - newX) != 0)) return false;
 		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -267,10 +268,10 @@ public class BattleField implements IMessageReceivedHandler {
 
 		//System.out.println("MESSAGE RECEIVED:" + msg.get("request"));
 
-		System.out.println("MESSAGE RECEIVED " + (MessageRequest)msg.get("request"));
+		//System.out.println("MESSAGE RECEIVED " + (MessageRequest)msg.get("request"));
 
 		if((Boolean)msg.get("sync") != null && (Boolean)msg.get("sync") == true) {
-			System.out.println("SYNC MESSAGE RECEIVED " + (MessageRequest)msg.get("request"));
+			//System.out.println("SYNC MESSAGE RECEIVED " + (MessageRequest)msg.get("request"));
 			processSyncMessage(msg);
 
 		} else {
@@ -286,7 +287,6 @@ public class BattleField implements IMessageReceivedHandler {
 			case dealDamage:
 			case healDamage:
 				syncActionWithBattlefields(msg);
-				System.out.println("Mandou sync pa toda agente");
 				break;
 			case requestBFList: {
 				reply = new Message();
@@ -356,7 +356,7 @@ public class BattleField implements IMessageReceivedHandler {
 		switch ((MessageRequest)removeAction.message.get("request")) {
 
 		case spawnUnit: {
-			System.out.println("BATTLE FIELD:Spawn" + port);
+			//System.out.println("BATTLE FIELD:Spawn" + port);
 			System.out.println(battlefields.toString());
 
 			Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (InetSocketAddress)msg.get("address"), (Integer)msg.get("x"), (Integer)msg.get("y"));
@@ -378,11 +378,12 @@ public class BattleField implements IMessageReceivedHandler {
 			int x = (Integer)msg.get("x");
 			int y = (Integer)msg.get("y");
 			unit = this.getUnit(x, y);
-			if (unit != null)
+			if (unit != null) {
 				unit.adjustHitPoints( -(Integer)msg.get("damage") );
-			/* Copy the id of the message so that the unit knows 
-			 * what message the battlefield responded to. 
-			 */
+				if(unit.getHitPoints() <= 0) {
+					map[x][y] = null;
+				}
+			}
 			break;
 		}
 		case healDamage:
@@ -401,7 +402,7 @@ public class BattleField implements IMessageReceivedHandler {
 		case moveUnit:
 		{
 
-			System.out.println("BATTLEFIELD: MOVEUNIT");
+			//System.out.println("BATTLEFIELD: MOVEUNIT");
 			Unit tempUnit = (Unit)msg.get("unit");
 			/*
 			if(temptUnit == null) {
@@ -424,11 +425,11 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private synchronized Message processConfirmMessage(Message msg) {
 		Integer messageID = (Integer)msg.get("serverMessageID");
-		System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
+		//System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
 		if(removeAction != null) {
 			removeAction.timer.cancel();
-			System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
+			//System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
 			if((Boolean)msg.get("confirm")) processEvent(msg,removeAction);
 		}
 
@@ -448,7 +449,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 		if(actionInfo != null) {
 			if((Boolean)msg.get("ack")) {
-				System.out.println("[S"+port+"] "+actionInfo.message.get("address")+" ACK TRUE from "+serverAddress.getHostName()+":"+serverAddress.getPort()+" Adding info to queue.");
+				//System.out.println("[S"+port+"] "+actionInfo.message.get("address")+" ACK TRUE from "+serverAddress.getHostName()+":"+serverAddress.getPort()+" Adding info to queue.");
 				actionInfo.ackReceived.add((InetSocketAddress)msg.get("serverAddress")); 
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
@@ -486,14 +487,14 @@ public class BattleField implements IMessageReceivedHandler {
 
 		MessageRequest request = (MessageRequest)msg.get("request");
 		Integer messageID = (Integer)msg.get("serverMessageID");
-		InetSocketAddress originAddress = (InetSocketAddress)msg.get("address");
+		//InetSocketAddress originAddress = (InetSocketAddress)msg.get("address");
 		InetSocketAddress serverAddress = (InetSocketAddress)msg.get("serverAddress");
 		Integer x = (Integer)msg.get("x");
 		Integer y = (Integer)msg.get("y");
 
 		msg.put("sync", (Boolean)false);
 
-		System.out.println("[S"+port+"] Process Sync Message from "+serverAddress.getPort()+"\n Message "+request.name()+" with X="+x+"|Y="+y);
+		//System.out.println("[S"+port+"] Process Sync Message from "+serverAddress.getPort()+"\n Message "+request.name()+" with X="+x+"|Y="+y);
 
 		boolean conflictFound = false; 
 		Set<InetSocketAddress> toRemoveTemp = new HashSet<InetSocketAddress>();
@@ -573,7 +574,7 @@ public class BattleField implements IMessageReceivedHandler {
 			} else {
 				for(InetSocketAddress addressToRemove : toRemoveTemp) {
 					ActionInfo info = pendingOwnActions.remove(addressToRemove);
-					info.timer.cancel();
+					if(info!=null)info.timer.cancel();
 				}
 				addPendingOutsideAction(msg, messageID, serverAddress);
 				sendActionAck(msg, true, messageID, serverAddress);
@@ -646,8 +647,8 @@ public class BattleField implements IMessageReceivedHandler {
 			String s = "[S"+port+"] SENDING SYNC MESSAGE\nBefore change: "+message.get("address")+"\nAfter Change: ";
 			message.put("address", new InetSocketAddress(url,port));
 			s+= message.get("address");
-			System.out.println(s);
-			System.out.println("####################");
+			//System.out.println(s);
+			//System.out.println("####################");
 			SynchronizedClientSocket clientSocket;
 			clientSocket = new SynchronizedClientSocket(message, address, this);
 			clientSocket.sendMessage();
@@ -659,7 +660,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private void addPendingOutsideAction(Message message, Integer messageID, InetSocketAddress originAddress) {
 		Timer timer = new Timer();
-		System.out.println("Adding to OUTSIDE ACTION | Message type: "+message.get("request"));
+		//System.out.println("Adding to OUTSIDE ACTION | Message type: "+message.get("request"));
 		pendingOutsideActions.put(new ActionID(messageID, originAddress), new ActionInfo(message, timer, false));
 		timer.schedule(new ScheduledTask(), timeout);
 	}

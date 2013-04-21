@@ -52,7 +52,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	// If this is set to false, the unit will return its run()-method and disconnect from the server
 	protected boolean running;
 	
-	private Unit[][] map;
+	private transient Unit[][] map;
 
 	/* The thread that is used to make the unit run in a separate thread.
 	 * We need to remember this thread to make sure that Java exits cleanly.
@@ -153,13 +153,14 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		clientSocket = new SynchronizedClientSocket(damageMessage, battlefieldAddress, this);
 		clientSocket.sendMessage();
 		
+		/*
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
-		}
+		}*/
 
 	}
 	
@@ -250,7 +251,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 */
 	protected boolean spawn(int x, int y) {
 		//setPosition(x, y);
-		System.out.println(unitID + ":Spawn Message:" + x + " " + y);
+		//System.out.println(unitID + ":Spawn Message:" + x + " " + y);
 		/* Create a new message, notifying the board
 		 * the unit has actually spawned at the
 		 * designated position. 
@@ -277,10 +278,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		clientSocket = new SynchronizedClientSocket(spawnMessage, battlefieldAddress, this);
 		clientSocket.sendMessage();
 
-		System.out.println("BLOCK SPAWN");
+		//System.out.println("BLOCK SPAWN");
 
 		waitForMessage(0);
-		System.out.println("UNLOCK SPAWN");
+		//System.out.println("UNLOCK SPAWN");
 /*
 		Message result = messageList.get(id);
 		if(result != null){
@@ -322,6 +323,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	protected void removeUnit(int x, int y)
 	{
+		//map[x][y] = null;
+		
 		Message removeMessage = new Message();
 		int id = localMessageCounter++;
 		removeMessage.put("request", MessageRequest.removeUnit);
@@ -331,9 +334,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Send the removeUnit message
 		//clientSocket.sendMessage(removeMessage, "localsocket://" + BattleField.serverID);
-		SynchronizedClientSocket clientSocket;
-		clientSocket = new SynchronizedClientSocket(removeMessage, battlefieldAddress, this);
-		clientSocket.sendMessage();
+		//SynchronizedClientSocket clientSocket;
+		//clientSocket = new SynchronizedClientSocket(removeMessage, battlefieldAddress, this);
+		//clientSocket.sendMessage();
 
 	}
 
@@ -371,7 +374,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	public Message onMessageReceived(Message message) {
 		//if(message == null ) return null;
-		System.out.println("UNIT MSG RCV:" + message.toString());
+		//System.out.println("UNIT MSG RCV:" + message.toString());
 		if ((MessageRequest)message.get("request") == MessageRequest.gameState) {
 			System.out.println("Games State update");
 			//Who am I?
@@ -452,6 +455,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		return address;
 	}
 	
+	public InetSocketAddress getBattlefieldAddress() {
+		return battlefieldAddress;
+	}
 	//Unit is equal if it has the same address
 	public boolean equals(Object o) {
 		if(((Unit)o).getAddress().equals(address))return true;
