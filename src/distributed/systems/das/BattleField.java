@@ -222,7 +222,7 @@ public class BattleField implements IMessageReceivedHandler {
 		Unit unit = map[originalX][originalY];
 		if(unit == null || !unit.equals(tUnit)) return false;
 		// TODO Limitar movimentos diagonais
-		if(Math.abs(originalX - newX) > 1 || Math.abs(originalY - newY) > 1) return false;
+		if((Math.abs(originalX - newX) > 1 && Math.abs(originalY - newY) != 0)|| (Math.abs(originalY - newY) > 1 && Math.abs(originalX - newX) != 0)) return false;
 		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
 			return false;
