@@ -253,8 +253,9 @@ public class BattleField implements IMessageReceivedHandler {
 		if (unitToRemove == null)
 			return; // There was no unit here to remove
 		map[x][y] = null;
-		unitToRemove.disconnect();
 		units.remove(unitToRemove);
+		unitToRemove.disconnect();
+
 	}
 
 	/**
@@ -382,7 +383,7 @@ public class BattleField implements IMessageReceivedHandler {
 			if (unit != null) {
 				unit.adjustHitPoints( -(Integer)msg.get("damage") );
 				if(unit.getHitPoints() <= 0) {
-					map[x][y] = null;
+					removeUnit(x, y);
 				}
 			}
 			break;
