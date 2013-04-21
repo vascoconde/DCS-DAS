@@ -593,7 +593,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 		case dealDamage:
 		case healDamage: 
-			if (getUnit(x, y) != null && getUnit(x, y) instanceof Player) {
+			if (getUnit(x, y) != null) {
 				for(ActionInfo info : pendingOwnActions.values()){
 					MessageRequest actionType = (MessageRequest)info.message.get("request");
 					if(actionType == MessageRequest.moveUnit){
