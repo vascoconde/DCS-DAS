@@ -113,7 +113,7 @@ public class BattleField implements IMessageReceivedHandler {
 						//Puts position of the unit we are sending to in the map we are sending
 						Unit u = units.get(address);
 						message.put("unit",  u);
-						
+
 						clientSocket = new SynchronizedClientSocket(message, address, null);
 						clientSocket.sendMessage();	
 					}
@@ -431,7 +431,7 @@ public class BattleField implements IMessageReceivedHandler {
 			System.out.println("[S"+port+"] OutsideSize "+pendingOutsideActions.size()+" Confirm = "+(Boolean)msg.get("confirm")+" RemoveAction Request: "+removeAction.message.get("request"));
 			if((Boolean)msg.get("confirm")) processEvent(msg,removeAction);
 		}
-		
+
 		return null;
 
 	}
@@ -460,8 +460,10 @@ public class BattleField implements IMessageReceivedHandler {
 					ActionInfo removeAction = pendingOwnActions.remove(messageID);
 					removeAction.timer.cancel();
 					Message toPlayer = processEvent(msg, removeAction);
-					SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);
-					clientSocket.sendMessage();
+					if(toPlayer!=null) {
+						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);
+						clientSocket.sendMessage();
+					}
 				}
 			} else {
 				pendingOwnActions.remove(messageID).timer.cancel();
