@@ -718,9 +718,9 @@ public class BattleField implements IMessageReceivedHandler {
 	}
 
 	private class ScheduledTask extends TimerTask implements Runnable {
-		private IMessageReceivedHandler handler;
-		private Message message;
-		private InetSocketAddress destinationAddress;
+		//private IMessageReceivedHandler handler;
+		//private Message message;
+		//private InetSocketAddress destinationAddress;
 
 		/*
 		ScheduledTask(){
@@ -729,6 +729,7 @@ public class BattleField implements IMessageReceivedHandler {
 		@Override
 		public void run() {
 			System.out.println("TIME OUT");
+			//TODO
 			//handler.onReadExceptionThrown(message, destinationAddress);
 		}
 	}

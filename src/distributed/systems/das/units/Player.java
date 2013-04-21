@@ -84,7 +84,7 @@ public class Player extends Unit implements Runnable, Serializable {
 			try {			
 				/* Sleep while the player is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
-				Thread.currentThread().sleep((int)(500));
+				Thread.currentThread().sleep((int)(300));
 
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
@@ -142,6 +142,7 @@ public class Player extends Unit implements Runnable, Serializable {
 						this.healDamage(targetX, targetY, getAttackPoints());
 						break;
 					case dragon:
+						System.out.println("::::::PLAYER: DEAL DAMAGE::::::");
 						// There is a dragon in the square, attempt a dragon slaying
 						this.dealDamage(targetX, targetY, getAttackPoints());
 						break;
