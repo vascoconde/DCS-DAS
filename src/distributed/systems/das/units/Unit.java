@@ -177,6 +177,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			healMessage.put("request", MessageRequest.healDamage);
 			healMessage.put("x", x);
 			healMessage.put("y", y);
+			healMessage.put("address", address);
 			healMessage.put("healed", healed);
 			healMessage.put("id", id);
 		}
