@@ -147,7 +147,7 @@ public class LogEntry implements Serializable {
 			s+= "]";
 			
 			if(event != null)
-				s += " " + event.name();
+				s += String.format(" %12s",event.name());
 			
 			if(origin != null)
 				s += " " + origin.getHostName()+ ":"+origin.getPort();
