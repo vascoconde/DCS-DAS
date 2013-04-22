@@ -27,9 +27,9 @@ public class Core {
 	public static int playerCount;
 
 	public static void main(String[] args) {
-		battlefield1 = new BattleField("localhost", 50000);
-		battlefield2 = new BattleField("localhost", 50001, "localhost", 50000);
-		battlefield3 = new BattleField("localhost", 50002, "localhost", 50000);
+		battlefield1 = new BattleField(0,"localhost", 50000, false);
+		battlefield2 = new BattleField(1,"localhost", 50001, "localhost", 50000, false);
+		battlefield3 = new BattleField(2,"localhost", 50002, "localhost", 50000, false);
 		
 		/* Spawn a new battlefield viewer */
 		new Thread(new Runnable() {

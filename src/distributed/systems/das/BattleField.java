@@ -11,9 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogManager;
 import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
 import distributed.systems.core.SynchronizedSocket;
+import distributed.systems.core.VectorialClock;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 
@@ -54,7 +56,9 @@ public class BattleField implements IMessageReceivedHandler {
 	 */
 	private int lastUnitID = 0;
 
-	public final static String serverID = "server";
+	public final int id;
+	public final boolean restart;
+
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
 	//private ArrayList <Unit> units; 
@@ -62,24 +66,32 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private HashSet<InetSocketAddress> battlefields; 
 
+	private VectorialClock vClock;
+	private LogManager logManager;
+
 	/**
 	 * Initialize the battlefield to the specified size 
 	 * @param width of the battlefield
 	 * @param height of the battlefield
 	 */
-	BattleField(String url, int port) {
+	BattleField(int id, String url, int port, boolean restart) {
 		battlefields = new HashSet<InetSocketAddress>();
 		this.url = url;
 		this.port = port;	
+		this.id = id;
+		this.restart = restart;
 		battlefields.add(new InetSocketAddress(url, port));
 
 		initBattleField();		
 	}
 
-	BattleField(String url, int port, String otherUrl, int otherPort) {
+	BattleField(int id,String url, int port, String otherUrl, int otherPort, boolean restart) {
 		battlefields = new HashSet<InetSocketAddress>();
 		this.url = url;
 		this.port = port;
+		this.id = id;
+		this.restart = restart;
+
 		battlefields.add(new InetSocketAddress(url, port));
 		initBattleField();
 
@@ -100,6 +112,9 @@ public class BattleField implements IMessageReceivedHandler {
 		//units = new ArrayList<Unit>();
 		pendingOwnActions = new ConcurrentHashMap<Integer, ActionInfo>();
 		pendingOutsideActions = new ConcurrentHashMap<ActionID, ActionInfo>();
+		
+		vClock = new VectorialClock(5);
+		logManager = new LogManager(url + "_" + port);
 		//Updates to game state
 		new Thread(new Runnable() {
 			public void run() {
@@ -426,6 +441,7 @@ public class BattleField implements IMessageReceivedHandler {
 	}
 
 	private synchronized Message processConfirmMessage(Message msg) {
+		//Write to log;
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		//System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
@@ -454,6 +470,7 @@ public class BattleField implements IMessageReceivedHandler {
 				//System.out.println("[S"+port+"] "+actionInfo.message.get("address")+" ACK TRUE from "+serverAddress.getHostName()+":"+serverAddress.getPort()+" Adding info to queue.");
 				actionInfo.ackReceived.add((InetSocketAddress)msg.get("serverAddress")); 
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
+					// Write to log
 					message.put("confirm", true);
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
