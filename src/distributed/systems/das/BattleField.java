@@ -434,7 +434,7 @@ public class BattleField implements IMessageReceivedHandler {
 			 */
 			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
 
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("healed"));
 			logManager.writeAsText(entry, true);
 
 			break;

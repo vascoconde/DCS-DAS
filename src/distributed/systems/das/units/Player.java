@@ -27,8 +27,8 @@ public class Player extends Unit implements Runnable, Serializable {
 	protected int timeBetweenTurns;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
-	public static final int MIN_HITPOINTS = 20;
-	public static final int MAX_HITPOINTS = 10;
+	public static final int MIN_HITPOINTS = 10;
+	public static final int MAX_HITPOINTS = 20;
 	public static final int MIN_ATTACKPOINTS = 1;
 	public static final int MAX_ATTACKPOINTS = 10;
 
