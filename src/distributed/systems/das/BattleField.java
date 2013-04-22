@@ -790,4 +790,69 @@ public class BattleField implements IMessageReceivedHandler {
 				this.ackReceived = null;
 		}
 	}
+	
+	public static void main(String[] args) {
+
+		String usage = "Usage: BattleField <id> <hostname> <port> [<otherBFHostname> <otherBFPort> [-r]]";
+
+		if(args.length != 3 && args.length != 5 && args.length != 6) {
+			System.out.println(usage);
+			System.exit(1);
+		}
+
+		if(args.length==6) {
+			if(args[5].equals("-r")) {
+				try {
+					System.out.println("Launching BattleField in RESTART mode.");
+					new BattleField(
+							Integer.parseInt(args[0]), 
+							args[1],
+							Integer.parseInt(args[2]),
+							args[3],
+							Integer.parseInt(args[4]),
+							true);
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println(usage);
+					System.exit(1);
+				}
+			} else {
+				System.out.println(usage);
+				System.exit(1);
+			}
+		}
+
+		else if(args.length==5) {
+			try {
+				System.out.println("Launching BattleField in NORMAL mode.");
+				new BattleField(
+						Integer.parseInt(args[0]), 
+						args[1],
+						Integer.parseInt(args[2]),
+						args[3],
+						Integer.parseInt(args[4]),
+						false);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println(usage);
+				System.exit(1);
+			}
+		}
+		
+		else if(args.length==3) {
+			try {
+				System.out.println("Launching BattleField in NORMAL mode.");
+				new BattleField(
+						Integer.parseInt(args[0]), 
+						args[1],
+						Integer.parseInt(args[2]),
+						false);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println(usage);
+				System.exit(1);
+			}
+		}
+		
+	}
 }
