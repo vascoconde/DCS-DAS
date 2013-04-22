@@ -413,6 +413,7 @@ public class BattleField implements IMessageReceivedHandler {
 	private Message processEvent(Message msg, ActionInfo removeAction) {
 		Unit unit = null;
 		LogEntry entry;
+		Integer[] tempClock;
 
 		switch ((MessageRequest)removeAction.message.get("request")) {
 
@@ -432,10 +433,13 @@ public class BattleField implements IMessageReceivedHandler {
 			Unit u = units.get((InetSocketAddress)msg.get("address"));
 			reply.put("unit",  u);
 			
-			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			tempClock = ((Integer[])msg.get("vclock")).clone();
+			
+			entry = new LogEntry(tempClock, LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock((Integer[])msg.get("vclock"));
+				System.out.println("<"+url+":"+port+"> Spawn will be processed --> "+toStringArray(tempClock));
+				vClock.updateClock(tempClock);
 			}
 			return reply;
 
@@ -527,6 +531,15 @@ public class BattleField implements IMessageReceivedHandler {
 
 	}
 
+	private String toStringArray(Integer[] c){
+		String s = "[ ";
+		for( int i= 0; i< c.length; i++){
+			s+=  c[i];
+			s+=", "; 
+		}
+		s+= "]";
+		return s;}
+	
 	private synchronized Message processResponseMessage(Message msg) {
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		ActionInfo actionInfo =  pendingOwnActions.get(messageID);
@@ -544,7 +557,7 @@ public class BattleField implements IMessageReceivedHandler {
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
 					Integer[] tempClock = vClock.incrementClock(id);
-					System.out.println("<"+url+":"+port+"> Clock added when action is ready to ship --> "+tempClock.toString());
+					System.out.println("<"+url+":"+port+"> Clock added when action is ready to ship --> "+toStringArray(tempClock));
 					message.put("vclock", tempClock);
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
@@ -553,7 +566,7 @@ public class BattleField implements IMessageReceivedHandler {
 					ActionInfo removeAction = pendingOwnActions.remove(messageID);
 					removeAction.timer.cancel();
 					msg.put("vclock", tempClock);
-					Message toPlayer = processEvent(msg, removeAction);
+					Message toPlayer = processEvent(message, removeAction);
 					if(toPlayer!=null) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);
 						clientSocket.sendMessage();

@@ -36,7 +36,7 @@ public class VectorialClock implements Serializable {
 	 */
 	public synchronized Integer[] incrementClock(int id) {
 		clock[id]++;
-		return clock;
+		return clock.clone();
 	}
 
 	/**
