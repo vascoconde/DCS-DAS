@@ -403,7 +403,7 @@ public class BattleField implements IMessageReceivedHandler {
 			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				
+				System.out.println(url+":"+port+": BU "+(Integer[])msg.get("vclock"));
 				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			return reply;
@@ -512,10 +512,7 @@ public class BattleField implements IMessageReceivedHandler {
 				actionInfo.ackReceived.add((InetSocketAddress)msg.get("serverAddress")); 
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
-					System.out.println(url+":"+port+": A "+vClock);
 					message.put("vclock", vClock.incrementClock(id));
-					System.out.println(url+":"+port+": D "+vClock);
-
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
 						clientSocket.sendMessage();
@@ -523,6 +520,7 @@ public class BattleField implements IMessageReceivedHandler {
 					}
 					ActionInfo removeAction = pendingOwnActions.remove(messageID);
 					removeAction.timer.cancel();
+					msg.put("vclock", vClock.getClock());
 					Message toPlayer = processEvent(msg, removeAction);
 					if(toPlayer!=null) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);
