@@ -14,7 +14,7 @@ public class LogEntry implements Serializable {
 	private int value = -1;	
 	private int[] clock;
 		
-	public class Position {
+	public static class Position {
 		int x, y;
 		public Position(int x, int y) { this.x = x; this.y = y; }
 		public int getX() { return x; }

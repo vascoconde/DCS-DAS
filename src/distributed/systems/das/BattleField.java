@@ -11,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogEntry;
+import distributed.systems.core.LogEntry.Position;
+import distributed.systems.core.LogEntryType;
 import distributed.systems.core.LogManager;
 import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
@@ -370,6 +373,8 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private Message processEvent(Message msg, ActionInfo removeAction) {
 		Unit unit = null;
+		LogEntry entry;
+
 		switch ((MessageRequest)removeAction.message.get("request")) {
 
 		case spawnUnit: {
@@ -387,6 +392,9 @@ public class BattleField implements IMessageReceivedHandler {
 			//Puts position of the unit we are sending to in the map we are sending
 			Unit u = units.get((InetSocketAddress)msg.get("address"));
 			reply.put("unit",  u);
+			
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			logManager.writeAsText(entry, true);
 			return reply;
 
 		}
@@ -401,6 +409,10 @@ public class BattleField implements IMessageReceivedHandler {
 					removeUnit(x, y);
 				}
 			}
+			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
+			logManager.writeAsText(entry, true);
+
 			break;
 		}
 		case healDamage:
@@ -413,6 +425,10 @@ public class BattleField implements IMessageReceivedHandler {
 			/* Copy the id of the message so that the unit knows 
 			 * what message the battlefield responded to. 
 			 */
+			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
+
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
+			logManager.writeAsText(entry, true);
 
 			break;
 		}
@@ -429,6 +445,10 @@ public class BattleField implements IMessageReceivedHandler {
 			boolean move = this.moveUnit(units.get((InetSocketAddress)msg.get("address")), (Integer)msg.get("x"), (Integer)msg.get("y"));
 			if(!move) System.out.println("MOVE CANCELED");
 
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( tempUnit.getX(),  tempUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			logManager.writeAsText(entry, true);
+
+			
 			/* Copy the id of the message so that the unit knows 
 			 * what message the battlefield responded to. 
 			 */
@@ -442,6 +462,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 	private synchronized Message processConfirmMessage(Message msg) {
 		//Write to log;
+		
 		Integer messageID = (Integer)msg.get("serverMessageID");
 		//System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
