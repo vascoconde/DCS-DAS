@@ -446,9 +446,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		return Direction.up;
 	}
 
-	
-
-	
 	private void updateUnitState(Unit u){
 		setPosition(u.getX(), u.getY());
 		this.attackPoints = u.getAttackPoints();
