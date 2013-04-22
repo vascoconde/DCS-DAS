@@ -1,5 +1,6 @@
 package distributed.systems.das;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class BattleField implements IMessageReceivedHandler {
 		this.restart = restart;
 		battlefields.add(new InetSocketAddress(url, port));
 
-		initBattleField();		
+		initBattleField(restart);		
 	}
 
 	BattleField(int id,String url, int port, String otherUrl, int otherPort, boolean restart) {
@@ -96,7 +97,7 @@ public class BattleField implements IMessageReceivedHandler {
 		this.restart = restart;
 
 		battlefields.add(new InetSocketAddress(url, port));
-		initBattleField();
+		initBattleField(restart);
 
 		Message message = new Message();
 		message.put("request", MessageRequest.requestBFList);
@@ -106,7 +107,7 @@ public class BattleField implements IMessageReceivedHandler {
 		clientSocket.sendMessageWithResponse();
 	}
 
-	private synchronized void initBattleField(){
+	private synchronized void initBattleField(boolean restart){
 		map = new Unit[MAP_WIDTH][MAP_WIDTH];
 		units = new ConcurrentHashMap<InetSocketAddress, Unit>();
 
@@ -117,7 +118,13 @@ public class BattleField implements IMessageReceivedHandler {
 		pendingOutsideActions = new ConcurrentHashMap<ActionID, ActionInfo>();
 		
 		vClock = new VectorialClock(5);
-		logManager = new LogManager(url + "_" + port);
+		String filename = url + "_" + port;
+		if(!restart) {
+			File f = new File(filename);
+			f.delete();
+		}
+		logManager = new LogManager(filename);
+
 		//Updates to game state
 		new Thread(new Runnable() {
 			public void run() {
