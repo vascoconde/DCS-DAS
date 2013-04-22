@@ -436,16 +436,19 @@ public class BattleField implements IMessageReceivedHandler {
 		{
 
 			//System.out.println("BATTLEFIELD: MOVEUNIT");
-			Unit tempUnit = (Unit)msg.get("unit");
+			Unit tempUnit = units.get((InetSocketAddress)msg.get("address"));
+			int x = tempUnit.getX();
+			int y = tempUnit.getY();
+		
 			/*
 			if(temptUnit == null) {
 				System.out.println("NULL");
 			}*/
 
-			boolean move = this.moveUnit(units.get((InetSocketAddress)msg.get("address")), (Integer)msg.get("x"), (Integer)msg.get("y"));
+			boolean move = this.moveUnit(tempUnit, (Integer)msg.get("x"), (Integer)msg.get("y"));
 			if(!move) System.out.println("MOVE CANCELED");
 
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( tempUnit.getX(),  tempUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( x, y), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 
 			
