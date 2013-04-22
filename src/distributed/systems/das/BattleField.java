@@ -432,10 +432,11 @@ public class BattleField implements IMessageReceivedHandler {
 			Unit u = units.get((InetSocketAddress)msg.get("address"));
 			reply.put("unit",  u);
 			
-			entry = new LogEntry(((VectorialClock)msg.get("vclock")).getClock(), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+				System.out.println(url+":"+port+": BU "+(Integer[])msg.get("vclock"));
+				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			return reply;
 
@@ -452,10 +453,10 @@ public class BattleField implements IMessageReceivedHandler {
 				}
 			}
 			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
+			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			break;
 		}
@@ -471,10 +472,10 @@ public class BattleField implements IMessageReceivedHandler {
 			 */
 			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
 
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("healed"));
+			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("healed"));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			break;
 		}
@@ -494,11 +495,11 @@ public class BattleField implements IMessageReceivedHandler {
 			boolean move = this.moveUnit(tempUnit, (Integer)msg.get("x"), (Integer)msg.get("y"));
 			if(!move) System.out.println("MOVE CANCELED");
 
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( x, y), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( x, y), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			/* Copy the id of the message so that the unit knows 
 			 * what message the battlefield responded to. 
@@ -544,7 +545,6 @@ public class BattleField implements IMessageReceivedHandler {
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
 					message.put("vclock", vClock.incrementClock(id));
-
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
 						clientSocket.sendMessage();
@@ -552,6 +552,7 @@ public class BattleField implements IMessageReceivedHandler {
 					}
 					ActionInfo removeAction = pendingOwnActions.remove(messageID);
 					removeAction.timer.cancel();
+					msg.put("vclock", vClock.getClock());
 					Message toPlayer = processEvent(msg, removeAction);
 					if(toPlayer!=null) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(toPlayer, (InetSocketAddress)msg.get("address"), this);

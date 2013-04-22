@@ -77,7 +77,7 @@ public class LogManager {
 	}
 
 	//Gets the Log ordered by clocks
-	public HashMap<int[], String> readOrderedLog (){
+	/*public HashMap<int[], String> readOrderedLog (){
 
 		HashMap<int[], String> unorderedLogMap= ReadFromText();
 		
@@ -130,7 +130,7 @@ public class LogManager {
 			orderedLog.put(clocksV[i].getClock(), strings[i]);
 
 		return orderedLog;
-	}
+	}*/
 
 	private static class AppendableObjectOutputStream extends ObjectOutputStream {
 		public AppendableObjectOutputStream(OutputStream out) throws IOException {
@@ -209,7 +209,7 @@ public class LogManager {
 	
 	
 
-	public void writeLogToTextfile() {
+	/*public void writeLogToTextfile() {
 		// TODO Auto-generated method stub
 		HashMap<int[], String> log = readOrderedLog();
 		try {
@@ -262,7 +262,7 @@ public class LogManager {
 			e.printStackTrace();
 		}
 	}
-
+*/
 	/*
 	public LogEntryText[] getLogEntriesOrdered() {
 		String hostname;

@@ -12,7 +12,7 @@ public class LogEntry implements Serializable {
 	private LogEntryType event;
 	private Position from, to;
 	private int value = -1;	
-	private int[] clock;
+	private Integer[] clock;
 		
 	public static class Position {
 		int x, y;
@@ -27,7 +27,7 @@ public class LogEntry implements Serializable {
 	 * @param origin
 	 * @param clock
 	 */
-	public LogEntry(int[] clock, LogEntryType event, InetSocketAddress origin){
+	public LogEntry(Integer[] clock, LogEntryType event, InetSocketAddress origin){
 		this.setOrigin(origin);
 		this.setEvent(event);
 		this.setClock(clock);
@@ -40,7 +40,7 @@ public class LogEntry implements Serializable {
 	 * @param to
 	 * @param clock
 	 */
-	public LogEntry(int[] clock, LogEntryType event, InetSocketAddress origin, Position to){
+	public LogEntry(Integer[] clock, LogEntryType event, InetSocketAddress origin, Position to){
 		this.setOrigin(origin);
 		this.setEvent(event);
 		this.setClock(clock);
@@ -55,7 +55,7 @@ public class LogEntry implements Serializable {
 	 * @param to
 	 * @param clock
 	 */
-	public LogEntry(int[] clock, LogEntryType event, InetSocketAddress origin, Position from, Position to){
+	public LogEntry(Integer[] clock, LogEntryType event, InetSocketAddress origin, Position from, Position to){
 		this.setOrigin(origin);
 		this.setEvent(event);
 		this.setClock(clock);
@@ -72,7 +72,7 @@ public class LogEntry implements Serializable {
 	 * @param amount
 	 * @param clock
 	 */
-	public LogEntry(int[] clock, LogEntryType event, InetSocketAddress origin, Position from, Position to, int amount){
+	public LogEntry(Integer[] clock, LogEntryType event, InetSocketAddress origin, Position from, Position to, int amount){
 		this.setOrigin(origin);
 		this.setEvent(event);
 		this.setClock(clock);
@@ -113,11 +113,11 @@ public class LogEntry implements Serializable {
 		this.event = event;
 	}
 
-	public int[] getClock() {
+	public Integer[] getClock() {
 		return clock;
 	}
 
-	public void setClock(int[] clock) {
+	public void setClock(Integer[] clock) {
 		this.clock = clock;
 	}
 

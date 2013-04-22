@@ -9,16 +9,16 @@ public class VectorialClock implements Serializable {
 
 	private static final long serialVersionUID = -4298646294358826625L;
 
-	private int[] clock;
+	private Integer[] clock;
 
 	public VectorialClock(int nEntities) {
-		clock = new int[nEntities];
+		clock = new Integer[nEntities];
 		for (int i = 0; i < nEntities; i++) {
 			clock[i] = 0;
 		}
 	}
 	
-	public VectorialClock(int[] clock) {
+	public VectorialClock(Integer[] clock) {
 		this.clock = clock;
 	}
 
@@ -26,7 +26,7 @@ public class VectorialClock implements Serializable {
 	 * Returns the clock.
 	 * @return clock
 	 */
-	public int[] getClock() {
+	public Integer[] getClock() {
 		return clock.clone();
 	}
 
@@ -34,7 +34,7 @@ public class VectorialClock implements Serializable {
 	 * Increment the clock at a specified ID by one unit
 	 * @param id 
 	 */
-	public synchronized int[] incrementClock(int id) {
+	public synchronized Integer[] incrementClock(int id) {
 		clock[id]++;
 		return clock;
 	}
@@ -44,7 +44,7 @@ public class VectorialClock implements Serializable {
 	 * @param externalClock
 	 * @param id 
 	 */
-	public synchronized int[] updateClock(int[] externalClock) {
+	public synchronized Integer[] updateClock(Integer[] externalClock) {
 		for (int i = 0; i < clock.length; i++) {
 			if (externalClock[i] > clock[i]) {
 				clock[i] = externalClock[i];
@@ -53,7 +53,7 @@ public class VectorialClock implements Serializable {
 		return clock.clone();
 	}
 
-	public synchronized int[] updateClockID(int[] externalClock, int id) {
+	public synchronized Integer[] updateClockID(Integer[] externalClock, int id) {
 		for (int i = 0; i < clock.length; i++) {
 			if(id!=i) {
 				if (externalClock[i] > clock[i]) {
@@ -66,13 +66,13 @@ public class VectorialClock implements Serializable {
 		return clock.clone();
 	}
 
-	public void setClock(int[] externalClock) {
+	public void setClock(Integer[] externalClock) {
 		for (int i = 0; i < clock.length; i++) {
 			clock[i] = externalClock[i];
 		}
 	}
 
-	public void setIndexValue(int id, int value) {
+	public void setIndexValue(int id, Integer value) {
 		assert(id<clock.length);
 		assert(id>=0);
 		clock[id] = value;
