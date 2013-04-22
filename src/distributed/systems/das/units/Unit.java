@@ -344,7 +344,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected void moveUnit(int x, int y)
 	{
 
-		System.out.println(unitID+ ":Move unit:" + x + " " + y);
+		//System.out.println(unitID+ ":Move unit:" + x + " " + y);
 		Message moveMessage = new Message();
 		int id = localMessageCounter++;
 		moveMessage.put("request", MessageRequest.moveUnit);
@@ -377,13 +377,13 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		//if(message == null ) return null;
 		//System.out.println("UNIT MSG RCV:" + message.toString());
 		if ((MessageRequest)message.get("request") == MessageRequest.gameState) {
-			System.out.println("Games State update");
+			//System.out.println("Games State update");
 			//Who am I?
 			map = (Unit[][])message.get("gamestate");
 			//Unit u = searchMapForThisUnit(map);//Could return null if it isn't in the map anymore
 			Unit u = (Unit)message.get("unit");//Could return null if it isn't in the map anymore
 			updateUnitState(u);
-			System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
+			//System.out.println("Unit:" + u.unitID + " " + u.getX() + " " + u.getY());
 			//Update this instance variables
 			
 		}

@@ -27,10 +27,10 @@ public class Player extends Unit implements Runnable, Serializable {
 	protected int timeBetweenTurns;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
-	public static final int MIN_HITPOINTS = 10;
-	public static final int MAX_HITPOINTS = 20;
-	public static final int MIN_ATTACKPOINTS = 1;
-	public static final int MAX_ATTACKPOINTS = 10;
+	public static final int MIN_HITPOINTS = 20;
+	public static final int MAX_HITPOINTS = 30;
+	public static final int MIN_ATTACKPOINTS = 4;
+	public static final int MAX_ATTACKPOINTS = 12;
 
 	protected Unit[][] map;
 
@@ -144,7 +144,6 @@ public class Player extends Unit implements Runnable, Serializable {
 						this.healDamage(targetX, targetY, getAttackPoints());
 						break;
 					case dragon:
-						System.out.println("::::::PLAYER: DEAL DAMAGE::::::");
 						// There is a dragon in the square, attempt a dragon slaying
 						this.dealDamage(targetX, targetY, getAttackPoints());
 						break;
