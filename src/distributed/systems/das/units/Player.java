@@ -89,11 +89,13 @@ public class Player extends Unit implements Runnable, Serializable {
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
 					break;
-
+				
+				Dragon closestDragon = (Dragon)closestUnitOfType(UnitType.dragon);
+				direction = inDirectionOfUnit(closestDragon);
 				// Randomly choose one of the four wind directions to move to if there are no units present
-				direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
+				//direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
 				adjacentUnitType = UnitType.undefined;
-
+				
 				switch (direction) {
 					case up:
 						if (this.getY().intValue() <= 0)

@@ -416,6 +416,37 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		
 	}
 	
+	//If type is Undefined can return Unit of either type
+	protected Unit closestUnitOfType(UnitType type) {
+		Unit closest = null;
+		int distance = map.length*map.length; //Bigger than max distance
+
+		for( int i = 0; i < map.length; i++) {
+			for( int j = 0; j < map[0].length; j++) {
+				if(map[i][j] == null || Math.abs(this.getX()-i) + Math.abs(this.getY()-j) > distance) continue;
+				if(type == UnitType.undefined || getType(i,j) == type){
+					closest = map[i][j];
+					distance = Math.abs(this.getX()-i) + Math.abs(this.getY()-j);
+				}
+			}
+		}
+		return closest;
+		
+	}
+	
+	protected Direction inDirectionOfUnit(Unit unit) {
+		int difX = this.getX()-unit.getX();
+		int difY = this.getY()-unit.getY();
+		if(difX > 0) return Direction.left;
+		if(difX < 0) return Direction.right;
+		if(difY > 0) return Direction.up;
+		if(difY < 0) return Direction.down;
+		return Direction.up;
+	}
+
+	
+
+	
 	private void updateUnitState(Unit u){
 		setPosition(u.getX(), u.getY());
 		this.attackPoints = u.getAttackPoints();
