@@ -400,8 +400,11 @@ public class BattleField implements IMessageReceivedHandler {
 			Unit u = units.get((InetSocketAddress)msg.get("address"));
 			reply.put("unit",  u);
 			
-			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+			entry = new LogEntry(((VectorialClock)msg.get("vclock")).getClock(), LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
+			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
+				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+			}
 			return reply;
 
 		}
@@ -419,7 +422,9 @@ public class BattleField implements IMessageReceivedHandler {
 			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
 			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
 			logManager.writeAsText(entry, true);
-
+			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
+				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+			}
 			break;
 		}
 		case healDamage:
@@ -436,7 +441,9 @@ public class BattleField implements IMessageReceivedHandler {
 
 			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("healed"));
 			logManager.writeAsText(entry, true);
-
+			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
+				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+			}
 			break;
 		}
 		case moveUnit:
@@ -458,7 +465,9 @@ public class BattleField implements IMessageReceivedHandler {
 			entry = new LogEntry(vClock.incrementClock(id), LogEntryType.MOVE, (InetSocketAddress)msg.get("address"), new Position( x, y), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 
-			
+			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
+				vClock.updateClock(((VectorialClock)msg.get("vclock")).getClock());
+			}
 			/* Copy the id of the message so that the unit knows 
 			 * what message the battlefield responded to. 
 			 */
@@ -501,8 +510,9 @@ public class BattleField implements IMessageReceivedHandler {
 				//System.out.println("[S"+port+"] "+actionInfo.message.get("address")+" ACK TRUE from "+serverAddress.getHostName()+":"+serverAddress.getPort()+" Adding info to queue.");
 				actionInfo.ackReceived.add((InetSocketAddress)msg.get("serverAddress")); 
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
-					// Write to log
 					message.put("confirm", true);
+					message.put("vclock", vClock.incrementClock(id));
+
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
 						clientSocket.sendMessage();

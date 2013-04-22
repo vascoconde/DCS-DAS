@@ -436,6 +436,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 	
 	protected Direction inDirectionOfUnit(Unit unit) {
+		if(unit == null) return Direction.up;
 		int difX = this.getX()-unit.getX();
 		int difY = this.getY()-unit.getY();
 		if(difX > 0) return Direction.left;
