@@ -20,8 +20,10 @@ import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.VectorialClock;
+import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
+import distributed.systems.das.units.Unit.UnitType;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -150,6 +152,36 @@ public class BattleField implements IMessageReceivedHandler {
 						e.printStackTrace();
 					}		
 				}
+			}
+		}).start();
+		
+
+		//Updates to game state
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(10000L);//Time between gameState update is sent to units
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				while(true) {
+					boolean dragon = false;
+					boolean player = false;
+
+					for( Unit entry : units.values()) {
+						if(entry instanceof Dragon) dragon = true;
+						if(entry instanceof Player) player = true;
+					}
+					if(!(dragon && player)) System.out.println("GAME ENDED");
+					try {
+						Thread.sleep(3000L);//Time between gameState update is sent to units
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+				
 			}
 		}).start();
 
