@@ -2,6 +2,7 @@ package distributed.systems.das.units;
 
 import java.io.Serializable;
 
+import distributed.systems.core.LogEntry.Position;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
@@ -34,8 +35,10 @@ public class Player extends Unit implements Runnable, Serializable {
 
 	protected Unit[][] map;
 
+	private transient int lastX = -1;
+	private transient int lastY = -1;
+	private transient int attemptsCounter = 0;
 
-	
 	/**
 	 * Create a player, initialize both 
 	 * the hit and the attackpoints. 
@@ -90,10 +93,14 @@ public class Player extends Unit implements Runnable, Serializable {
 				if (getHitPoints() <= 0)
 					break;
 				
+				
 				Dragon closestDragon = (Dragon)closestUnitOfType(UnitType.dragon);
-				direction = inDirectionOfUnit(closestDragon);
+				if(attemptsCounter<3) {
+					direction = inDirectionOfUnit(closestDragon);
+				} else {
+					direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
+				}
 				// Randomly choose one of the four wind directions to move to if there are no units present
-				//direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
 				adjacentUnitType = UnitType.undefined;
 				
 				switch (direction) {
@@ -137,7 +144,16 @@ public class Player extends Unit implements Runnable, Serializable {
 				switch (adjacentUnitType) {
 					case undefined:
 						// There is no unit in the square. Move the player to this square
+						if(lastX == this.getX().intValue() && lastY == this.getY().intValue()) {
+							attemptsCounter++;
+						} else {
+							lastX = this.getX();
+							lastY = this.getY();
+							attemptsCounter = 0;
+							
+						}
 						this.moveUnit(targetX, targetY);
+							
 						break;
 					case player:
 						// There is a player in the square, attempt a healing
