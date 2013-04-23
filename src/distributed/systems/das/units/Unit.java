@@ -142,6 +142,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			damageMessage.put("request", MessageRequest.dealDamage);
 			damageMessage.put("x", x);
 			damageMessage.put("y", y);
+			damageMessage.put("unit", this);
 			damageMessage.put("address", address);
 			damageMessage.put("damage", damage);
 			damageMessage.put("id", id);
@@ -180,6 +181,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			healMessage.put("address", address);
 			healMessage.put("healed", healed);
 			healMessage.put("id", id);
+			healMessage.put("unit", this);
+
 		}
 
 		// Send a spawn message
