@@ -169,13 +169,14 @@ public class BattleField implements IMessageReceivedHandler {
 					boolean dragon = false;
 					boolean player = false;
 
+					System.out.println(units);
 					for( Unit entry : units.values()) {
 						if(entry instanceof Dragon) dragon = true;
 						if(entry instanceof Player) player = true;
 					}
 					if(!(dragon && player)) System.out.println("GAME ENDED");
 					try {
-						Thread.sleep(3000L);//Time between gameState update is sent to units
+						Thread.sleep(1000L);//Time between gameState update is sent to units
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -310,7 +311,7 @@ public class BattleField implements IMessageReceivedHandler {
 		if (unitToRemove == null)
 			return; // There was no unit here to remove
 		map[x][y] = null;
-		units.remove(unitToRemove);
+		units.remove(unitToRemove.getAddress());
 		unitToRemove.disconnect();
 
 	}
@@ -438,7 +439,7 @@ public class BattleField implements IMessageReceivedHandler {
 			entry = new LogEntry(tempClock, LogEntryType.SPAWN, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				System.out.println("<"+url+":"+port+"> Spawn will be processed --> "+toStringArray(tempClock));
+				//System.out.println("<"+url+":"+port+"> Spawn will be processed --> "+toStringArray(tempClock));
 				vClock.updateClock(tempClock);
 			}
 			return reply;
@@ -557,7 +558,7 @@ public class BattleField implements IMessageReceivedHandler {
 				if(actionInfo.ackReceived.size() == battlefields.size()-1) {
 					message.put("confirm", true);
 					Integer[] tempClock = vClock.incrementClock(id);
-					System.out.println("<"+url+":"+port+"> Clock added when action is ready to ship --> "+toStringArray(tempClock));
+					//System.out.println("<"+url+":"+port+"> Clock added when action is ready to ship --> "+toStringArray(tempClock));
 					message.put("vclock", tempClock);
 					for(InetSocketAddress address : actionInfo.ackReceived) {
 						SynchronizedClientSocket clientSocket = new SynchronizedClientSocket(message, address, this);
@@ -651,9 +652,6 @@ public class BattleField implements IMessageReceivedHandler {
 				if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) {
 					conflictFound = true;
 				}
-					
-				
-
 
 				for(ActionInfo info : pendingOwnActions.values()){
 					MessageRequest actionType = (MessageRequest)info.message.get("request");
@@ -779,7 +777,6 @@ public class BattleField implements IMessageReceivedHandler {
 		timer.schedule(new ScheduledTask(), timeout);
 	}
 
-
 	public synchronized void syncActionWithBattlefields(Message message) {
 		Timer timer = new Timer();
 		pendingOwnActions.put(++localMessageCounter, new ActionInfo(message, timer, true));
@@ -799,13 +796,9 @@ public class BattleField implements IMessageReceivedHandler {
 		}
 	}
 
-
-
-
 	public InetSocketAddress getAddress() {
 		return new InetSocketAddress(url, port);
 	}
-
 
 	/**
 	 * Close down the battlefield. Unregisters
