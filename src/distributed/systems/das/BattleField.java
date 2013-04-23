@@ -456,8 +456,9 @@ public class BattleField implements IMessageReceivedHandler {
 					removeUnit(x, y);
 				}
 			}
-			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
-			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("damage"));
+			Unit attackingUnit = (Unit)msg.get("unit");
+			System.out.println(attackingUnit);
+			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position(x,y), (Integer)msg.get("damage"));
 			logManager.writeAsText(entry, true);
 			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
 				vClock.updateClock((Integer[])msg.get("vclock"));
@@ -474,7 +475,7 @@ public class BattleField implements IMessageReceivedHandler {
 			/* Copy the id of the message so that the unit knows 
 			 * what message the battlefield responded to. 
 			 */
-			Unit attackingUnit = units.get((InetSocketAddress)msg.get("address"));
+			Unit attackingUnit = (Unit)msg.get("unit");
 
 			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.HEAL, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")), (Integer)msg.get("healed"));
 			logManager.writeAsText(entry, true);
