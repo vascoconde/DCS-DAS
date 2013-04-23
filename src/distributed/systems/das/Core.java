@@ -28,8 +28,8 @@ public class Core {
 
 	public static void main(String[] args) {
 		battlefield1 = new BattleField(0,"localhost", 50000, false);
-		battlefield2 = new BattleField(1,"localhost", 50001, "localhost", 50000, false);
-		battlefield3 = new BattleField(2,"localhost", 50002, "localhost", 50000, false);
+		battlefield2 = new BattleField(1,"localhost", 51000, "localhost", 50000, false);
+		battlefield3 = new BattleField(2,"localhost", 52000, "localhost", 50000, false);
 		
 		/* Spawn a new battlefield viewer */
 		new Thread(new Runnable() {
@@ -79,7 +79,7 @@ public class Core {
 			final int temp = i;
 			new Thread(new Runnable() {
 				public void run() {
-					new Dragon(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50050 + temp, "localhost", 50002);
+					new Dragon(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50050 + temp, "localhost", 50000 + (temp%3*1000));
 				}
 			}).start();
 
@@ -120,7 +120,7 @@ public class Core {
 				public void run() {
 					//TODO Ports have to be different for each player even when only connecting to different battlefields
 					//Now I'm just worried about all of them having different ports
-					new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50100 + temp, "localhost", 50000 + temp%3);
+					new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50100 + temp, "localhost", 50000 + (temp%3*1000));
 				}
 			}).start();
 			
