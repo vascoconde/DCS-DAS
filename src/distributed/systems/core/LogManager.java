@@ -102,7 +102,13 @@ public class LogManager {
 		/*
 		 * Option 2
 		 */
-		int clocks[][] = (int[][])clock.toArray();
+		//int clocks[][] = (int[][])clock.toArray();
+		int clocks[][] = new int[clock.size()][clock.iterator().next().length];
+		int index = 0;
+		for(int[] c : clock) {
+			clocks[index] = c;
+			index++;
+		}
 
 		String[] strings = Arrays.asList(unorderedLogMap.values().toArray()).toArray(new String[unorderedLogMap.values().toArray().length]);
 
