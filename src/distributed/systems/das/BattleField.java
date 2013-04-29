@@ -2,6 +2,7 @@ package distributed.systems.das;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
@@ -49,7 +50,7 @@ public class BattleField implements IMessageReceivedHandler {
 	private SynchronizedSocket serverSocket;
 	private String url;
 	private int port;
-	private final int timeout = 3000;
+	private final int timeout = 1000;
 
 
 	private Map<ActionID, ActionInfo> pendingOutsideActions;
@@ -70,7 +71,7 @@ public class BattleField implements IMessageReceivedHandler {
 	//private ArrayList <Unit> units; 
 	//private Map<InetSocketAddress, Integer> units; 
 
-	private HashSet<InetSocketAddress> battlefields; 
+	private HashMap<InetSocketAddress, Integer> battlefields; 
 
 	private VectorialClock vClock;
 	private LogManager logger;
@@ -81,24 +82,24 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param height of the battlefield
 	 */
 	BattleField(int id, String url, int port, boolean restart) {
-		battlefields = new HashSet<InetSocketAddress>();
+		battlefields = new HashMap<InetSocketAddress, Integer>();
 		this.url = url;
 		this.port = port;	
 		this.id = id;
 		this.restart = restart;
-		battlefields.add(new InetSocketAddress(url, port));
+		battlefields.put(new InetSocketAddress(url, port), 0);
 
 		initBattleField(restart);		
 	}
 
 	BattleField(int id,String url, int port, String otherUrl, int otherPort, boolean restart) {
-		battlefields = new HashSet<InetSocketAddress>();
+		battlefields = new HashMap<InetSocketAddress, Integer>();
 		this.url = url;
 		this.port = port;
 		this.id = id;
 		this.restart = restart;
 
-		battlefields.add(new InetSocketAddress(url, port));
+		battlefields.put(new InetSocketAddress(url, port), 0);
 		initBattleField(restart);
 
 		Message message = new Message();
@@ -358,7 +359,7 @@ public class BattleField implements IMessageReceivedHandler {
 			case requestBFList: {
 				reply = new Message();
 				reply.put("request", MessageRequest.replyBFList);
-				battlefields.add((InetSocketAddress)msg.get("bfAddress"));
+				battlefields.put((InetSocketAddress)msg.get("bfAddress"), 0);
 				reply.put("bfList", battlefields);
 				return reply;
 			}
@@ -366,9 +367,9 @@ public class BattleField implements IMessageReceivedHandler {
 			case replyBFList: {
 				HashSet<InetSocketAddress> bfList = (HashSet<InetSocketAddress>)msg.get("bfList");
 				for(InetSocketAddress address: bfList) {
-					battlefields.add(address);
+					battlefields.put(address, 0);
 				}
-				for(InetSocketAddress address: battlefields) {
+				for(InetSocketAddress address: battlefields.keySet()) {
 					SynchronizedClientSocket clientSocket;
 					Message message = new Message();
 					message.put("request", MessageRequest.addBF);
@@ -386,7 +387,7 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 
 			case addBF: {
-				battlefields.add((InetSocketAddress)msg.get("bfAddress"));
+				battlefields.put((InetSocketAddress)msg.get("bfAddress"), 0);
 				//System.out.println("ADD BF:"+ battlefields.toString());
 
 				return null;
@@ -767,7 +768,7 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @return true if message is already a sync message, or false if the if it was not a sync message and it was propagated.
 	 */
 	private boolean syncBF(Message message){
-		for (InetSocketAddress address : battlefields) {
+		for (InetSocketAddress address : battlefields.keySet()) {
 			if(address.equals(new InetSocketAddress(url, port))) continue;
 			message.put("sync", (Boolean)true);
 			String s = "[S"+port+"] SENDING SYNC MESSAGE\nBefore change: "+message.get("address")+"\nAfter Change: ";
@@ -787,15 +788,16 @@ public class BattleField implements IMessageReceivedHandler {
 	private void addPendingOutsideAction(Message message, Integer messageID, InetSocketAddress originAddress) {
 		Timer timer = new Timer();
 		//System.out.println("Adding to OUTSIDE ACTION | Message type: "+message.get("request"));
-		pendingOutsideActions.put(new ActionID(messageID, originAddress), new ActionInfo(message, timer, false));
-		timer.schedule(new ScheduledTask(), timeout);
+		ActionID actionID = new ActionID(messageID, originAddress);
+		pendingOutsideActions.put(actionID, new ActionInfo(message, timer, false));
+		timer.schedule(new ScheduledTask(this, actionID), timeout);
 	}
 
 	public synchronized void syncActionWithBattlefields(Message message) {
 		Timer timer = new Timer();
 		pendingOwnActions.put(++localMessageCounter, new ActionInfo(message, timer, true));
 		sendSyncMessage(message);
-		timer.schedule(new ScheduledTask(), timeout);
+		timer.schedule(new ScheduledTask(this, localMessageCounter), timeout);
 	}
 
 	private void sendSyncMessage(Message message){
@@ -803,7 +805,7 @@ public class BattleField implements IMessageReceivedHandler {
 		message.put("sync", (Boolean)true);
 		message.put("serverAddress", new InetSocketAddress(url, port));
 		message.put("serverMessageID", localMessageCounter);
-		for (InetSocketAddress address : battlefields) {
+		for (InetSocketAddress address : battlefields.keySet()) {
 			if(address.equals(new InetSocketAddress(url, port))) continue;
 			clientSocket = new SynchronizedClientSocket(message, address, this);
 			clientSocket.sendMessage();
@@ -830,23 +832,39 @@ public class BattleField implements IMessageReceivedHandler {
 	}
 
 	private class ScheduledTask extends TimerTask implements Runnable {
-		//private IMessageReceivedHandler handler;
-		//private Message message;
+		private BattleField handler;
+		private boolean outsideAction;
+		private ActionID id;
+		private int idInt;
 		//private InetSocketAddress destinationAddress;
 
-		/*
-		ScheduledTask(){
-		}*/
+		//Outside Action
+		ScheduledTask(BattleField handler, ActionID id){
+			this.outsideAction = true;
+			this.handler = handler;
+			this.id = id;
+		}
 
+		//InsideAction
+		ScheduledTask(BattleField handler, int id){
+			this.outsideAction = false;
+			this.handler = handler;
+			this.idInt = id;
+		}
 		@Override
 		public void run() {
 			System.out.println("TIME OUT");
-			//TODO remove action?
-			//handler.onReadExceptionThrown(message, destinationAddress);
+			//handler.checkBFFailures(destinationAddress);
+			if(outsideAction) {
+				handler.pendingOutsideActions.remove(id);
+			} else {
+				handler.pendingOwnActions.remove(idInt);
+			}			
 		}
 	}
 	
 	public Message onExceptionThrown(Message message, InetSocketAddress destinationAddress) {
+		checkBFFailures(destinationAddress);
 		return null;
 	}
 
@@ -888,6 +906,21 @@ public class BattleField implements IMessageReceivedHandler {
 				this.ackReceived = null;
 		}
 	}
+	
+	private synchronized boolean checkBFFailures(InetSocketAddress destinationAddress) {
+		Integer failures = battlefields.get(destinationAddress);
+		if(failures != null) {
+			if (failures > 1) {
+				battlefields.remove(destinationAddress);
+				return false;
+			}
+			else {
+				battlefields.put(destinationAddress,failures+1);
+			}
+		}
+		return false;
+	}
+
 	
 	public static void main(String[] args) {
 
