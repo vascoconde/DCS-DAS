@@ -169,7 +169,7 @@ public class BattleField implements IMessageReceivedHandler {
 					boolean dragon = false;
 					boolean player = false;
 
-					System.out.println(units);
+					//System.out.println(units);
 					for( Unit entry : units.values()) {
 						if(entry instanceof Dragon) dragon = true;
 						if(entry instanceof Player) player = true;
@@ -179,6 +179,8 @@ public class BattleField implements IMessageReceivedHandler {
 						logger.readOrderedLog();
 						logger.writeOrderedLogToTextfile("_ordered");
 						logger.cleanupStructures();
+						System.exit(1);
+
 					}
 					try {
 						Thread.sleep(1000L);//Time between gameState update is sent to units
@@ -425,7 +427,7 @@ public class BattleField implements IMessageReceivedHandler {
 
 		case spawnUnit: {
 			//System.out.println("BATTLE FIELD:Spawn" + port);
-			System.out.println(battlefields.toString());
+			//System.out.println(battlefields.toString());
 
 			Boolean succeded = this.spawnUnit((Unit)msg.get("unit"), (InetSocketAddress)msg.get("address"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 			if(succeded) {
@@ -457,16 +459,22 @@ public class BattleField implements IMessageReceivedHandler {
 			unit = this.getUnit(x, y);
 			if (unit != null) {
 				unit.adjustHitPoints( -(Integer)msg.get("damage") );
+				
+				Unit attackingUnit = (Unit)msg.get("unit");
+				//System.out.println(attackingUnit);
+				entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position(x,y), (Integer)msg.get("damage"));
+				logger.writeAsText(entry, true);
+				if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
+					vClock.updateClock((Integer[])msg.get("vclock"));
+				}
+				
 				if(unit.getHitPoints() <= 0) {
 					removeUnit(x, y);
+					//Log remove unit
+					// Should we log with same clock as deal damage that cause it?
+					entry = new LogEntry(vClock.getClock(), LogEntryType.REMOVE, (InetSocketAddress)msg.get("address"), new Position( (Integer)msg.get("x"),  (Integer)msg.get("y")));
+					logger.writeAsText(entry, true);
 				}
-			}
-			Unit attackingUnit = (Unit)msg.get("unit");
-			System.out.println(attackingUnit);
-			entry = new LogEntry((Integer[])msg.get("vclock"), LogEntryType.ATACK, (InetSocketAddress)msg.get("address"), new Position( attackingUnit.getX(),  attackingUnit.getY()), new Position(x,y), (Integer)msg.get("damage"));
-			logger.writeAsText(entry, true);
-			if(!((InetSocketAddress)msg.get("serverAddress")).equals(new InetSocketAddress(url, port))){
-				vClock.updateClock((Integer[])msg.get("vclock"));
 			}
 			break;
 		}
@@ -526,7 +534,7 @@ public class BattleField implements IMessageReceivedHandler {
 		//Write to log;
 		
 		Integer messageID = (Integer)msg.get("serverMessageID");
-		//System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
+		System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
 		if(removeAction != null) {
 			removeAction.timer.cancel();
@@ -836,6 +844,10 @@ public class BattleField implements IMessageReceivedHandler {
 			//TODO remove action?
 			//handler.onReadExceptionThrown(message, destinationAddress);
 		}
+	}
+	
+	public Message onExceptionThrown(Message message, InetSocketAddress destinationAddress) {
+		return null;
 	}
 
 	private class ActionID {

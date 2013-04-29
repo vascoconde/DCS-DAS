@@ -491,6 +491,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public InetSocketAddress getBattlefieldAddress() {
 		return battlefieldAddress;
 	}
+	
+	public Message onExceptionThrown(Message message, InetSocketAddress destinationAddress){
+		return null;
+	}
 
 	
 	//Unit is equal if it has the same address

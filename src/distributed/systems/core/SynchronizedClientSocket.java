@@ -36,8 +36,8 @@ public class SynchronizedClientSocket extends Thread  {
 		Message msg = null;
 		ObjectOutputStream out = null;
 		//Message message = null;
-		int connTries = 0;
-		while(connTries < 2){
+		//int connTries = 0;
+		//while(connTries < 2){
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
@@ -46,15 +46,15 @@ public class SynchronizedClientSocket extends Thread  {
 			}
 			try {
 				socket.connect(address);
-				break;
+				//break;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")).getUnitID());
 				e1.printStackTrace();
-				connTries++;
-				if(connTries >= 2) return;
+				//connTries++;
+				//if(connTries >= 2) return;
 			}
-		}
+		//}
 		
 		
 		try {
@@ -82,10 +82,10 @@ public class SynchronizedClientSocket extends Thread  {
 
 			} catch (SocketTimeoutException e) {
 				System.out.println("Timeout!!!!");
-				//message = handler.onExceptionThrown(cMessage, address);
+				message = handler.onExceptionThrown(message, address);
 				e.printStackTrace();
 			} catch (IOException e) {
-				//message = handler.onExceptionThrown(cMessage, address);
+				message = handler.onExceptionThrown(message, address);
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block

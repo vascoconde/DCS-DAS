@@ -17,6 +17,7 @@ public enum LogEntryType implements Serializable {
 	ATACK,
 	HEAL,
 	CONNECT_BF,
+	REMOVE,
 	
 	// unknown log
 	UNKNOWN

@@ -15,9 +15,9 @@ import distributed.systems.das.units.Player;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public class Core {
-	public static final int MIN_PLAYER_COUNT = 8;
-	public static final int MAX_PLAYER_COUNT = 8;
-	public static final int DRAGON_COUNT =4;
+	public static final int MIN_PLAYER_COUNT = 5;
+	public static final int MAX_PLAYER_COUNT = 5;
+	public static final int DRAGON_COUNT = 4;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 10; // In milliseconds
 	
 	public static BattleField battlefield1; 
@@ -122,10 +122,8 @@ public class Core {
 					//Now I'm just worried about all of them having different ports
 					new Player(finalX, finalY, battlefield1.getNewUnitID(),"localhost", 50100 + temp, "localhost", 50000 + (temp%3*1000));
 				}
-			}).start();
-			
+			}).start();	
 		}
-
 		
 		
 		/* Add a random player every (5 seconds x GAME_SPEED) so long as the
@@ -134,7 +132,6 @@ public class Core {
 		while(GameState.getRunningState()) {
 			try {
 				Thread.sleep((int)(5000 * GameState.GAME_SPEED));
-
 				// Connect a player to the game if the game still has room for a new player
 				if (playerCount >= MAX_PLAYER_COUNT) continue;
 
