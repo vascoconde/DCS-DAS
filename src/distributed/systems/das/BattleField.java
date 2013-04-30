@@ -698,6 +698,7 @@ public class BattleField implements IMessageReceivedHandler {
 			if (getUnit(x, y) == null){
 				
 				Unit unit = units.get((InetSocketAddress)msg.get("address"));
+
 				if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) {
 					conflictFound = true;
 				}
@@ -1165,7 +1166,7 @@ public class BattleField implements IMessageReceivedHandler {
 			e1.printStackTrace();
 		}
 		//Number Dragons, Number Players
-		bf.startExecution(2, 5);
+		bf.startExecution(3, 3);
 
 	}
 }
