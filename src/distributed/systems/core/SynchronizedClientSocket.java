@@ -49,13 +49,13 @@ public class SynchronizedClientSocket extends Thread  {
 				//break;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
+				message = handler.onExceptionThrown(message, address);
 				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")));
 				e1.printStackTrace();
 				//connTries++;
 				//if(connTries >= 2) return;
 			}
 		//}
-		
 		
 		try {
 			//Send Message
@@ -64,6 +64,7 @@ public class SynchronizedClientSocket extends Thread  {
 			out.writeObject(message);
 			out.flush();
 		} catch (IOException e) {
+			message = handler.onExceptionThrown(message, address);
 			e.printStackTrace();
 		}
 
@@ -109,6 +110,7 @@ public class SynchronizedClientSocket extends Thread  {
 			socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			message = handler.onExceptionThrown(message, address);
 			e.printStackTrace();
 		}
 

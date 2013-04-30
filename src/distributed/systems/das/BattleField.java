@@ -364,6 +364,11 @@ public class BattleField implements IMessageReceivedHandler {
 			switch(request)
 			{
 			case disconnectedUnit:
+				Unit u;
+				synchronized (this) {
+					u = units.remove((InetSocketAddress)msg.get("unitAddress"));
+					if(u!=null) map[u.getX()][u.getY()] = null;
+				}
 				tempClock= ((Integer[])msg.get("vclock")).clone();
 				entry = new LogEntry(tempClock, LogEntryType.DISCONNECTED_UNIT, (InetSocketAddress)msg.get("serverAddress"));
 				logger.writeAsText(entry, true);
@@ -916,11 +921,11 @@ public class BattleField implements IMessageReceivedHandler {
 */
 	}
 
-	
 	public Message onExceptionThrown(Message message, InetSocketAddress destinationAddress) {
-		boolean gsAvailable = checkBFFailures(destinationAddress);
 		
+		boolean gsAvailable = checkBFFailures(destinationAddress);
 		MessageRequest request = (MessageRequest)message.get("request");
+		
 		switch (request) {
 		case disconnectedBF:
 			if(gsAvailable) return message;
@@ -928,7 +933,6 @@ public class BattleField implements IMessageReceivedHandler {
 		case disconnectedUnit:
 			if(gsAvailable) return message;
 			break;
-			
 		case gameState:
 			Unit u;
 			synchronized (this) {
@@ -1166,7 +1170,7 @@ public class BattleField implements IMessageReceivedHandler {
 			e1.printStackTrace();
 		}
 		//Number Dragons, Number Players
-		bf.startExecution(3, 3);
+		bf.startExecution(2, 2);
 
 	}
 }
