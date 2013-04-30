@@ -912,6 +912,25 @@ public class BattleField implements IMessageReceivedHandler {
 		if(failures != null) {
 			if (failures > 1) {
 				battlefields.remove(destinationAddress);
+				//Remove all Units connected to this battleField
+				for( Map.Entry<InetSocketAddress, Unit> entry : units.entrySet()) {
+					if(entry.getValue().getBattlefieldAddress().equals(destinationAddress)){
+						removeUnit(entry.getValue().getX(), entry.getValue().getY());
+					}
+					
+					//Message message = new Message();
+					//message.put("request", MessageRequest.gameState);
+					//message.put("gamestate", map);
+					//Puts position of the unit we are sending to in the map we are sending
+					//Unit u = entry.getValue();
+					//message.put("unit",  u);
+
+					//clientSocket = new SynchronizedClientSocket(message, entry.getKey(), null);
+					//clientSocket.sendMessage();	
+				}
+
+
+				
 				return false;
 			}
 			else {
