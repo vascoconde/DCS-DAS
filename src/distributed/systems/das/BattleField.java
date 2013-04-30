@@ -358,9 +358,32 @@ public class BattleField implements IMessageReceivedHandler {
 			Message reply = null;
 			String origin = (String)msg.get("origin");
 			Unit unit;
+			Integer[] tempClock;
+			Message replyMessage;
+			LogEntry entry;
 			switch(request)
 			{
+			case disconnectedUnit:
+				tempClock= ((Integer[])msg.get("vclock")).clone();
+				entry = new LogEntry(tempClock, LogEntryType.DISCONNECTED_UNIT, (InetSocketAddress)msg.get("serverAddress"));
+				logger.writeAsText(entry, true);
+				replyMessage = new Message();
+				replyMessage.put("request", MessageRequest.disconnectedUnitAck);
+				replyMessage.put("serverAddress", new InetSocketAddress(url, port));
+				SynchronizedClientSocket client = new SynchronizedClientSocket(replyMessage, (InetSocketAddress)msg.get("serverAddress"), this);
+				client.sendMessage();
+				break;
 
+			case disconnectedBF:
+				tempClock = ((Integer[])msg.get("vclock")).clone();
+				entry = new LogEntry(tempClock, LogEntryType.DISCONNECTED_BF, (InetSocketAddress)msg.get("serverAddress"));
+				logger.writeAsText(entry, true);
+				replyMessage = new Message();
+				replyMessage.put("request", MessageRequest.disconnectedBFAck);
+				replyMessage.put("serverAddress", new InetSocketAddress(url, port));
+				SynchronizedClientSocket syncClient = new SynchronizedClientSocket(replyMessage, (InetSocketAddress)msg.get("serverAddress"), this);
+				syncClient.sendMessage();
+				break;
 			case spawnUnit:
 			case moveUnit:
 			case dealDamage:
@@ -874,8 +897,56 @@ public class BattleField implements IMessageReceivedHandler {
 		}
 	}
 	
+	private void synchronizeWithAllBF(Message messageToSend) {
+
+		//SyncLog syncLog = new SyncLog();
+		SynchronizedClientSocket syncClientSocket;
+
+		for(InetSocketAddress address : battlefields.keySet()) {
+			if (address.getHostName().equals(url) && address.getPort() == port) continue;
+			syncClientSocket = new SynchronizedClientSocket(messageToSend, address, this);
+			syncClientSocket.sendMessage();
+		}
+
+		/*
+		//Assume that it always gets a response from at least one of the GS
+		if(gridSchedulersList.size() > 1) 
+			syncLog.check();
+*/
+	}
+
+	
 	public Message onExceptionThrown(Message message, InetSocketAddress destinationAddress) {
-		checkBFFailures(destinationAddress);
+		boolean gsAvailable = checkBFFailures(destinationAddress);
+		
+		MessageRequest request = (MessageRequest)message.get("request");
+		switch (request) {
+		case disconnectedBF:
+			if(gsAvailable) return message;
+			break;
+		case disconnectedUnit:
+			if(gsAvailable) return message;
+			break;
+			
+		case gameState:
+			Unit u;
+			synchronized (this) {
+				u = units.remove(destinationAddress);
+				map[u.getX()][u.getY()] = null;
+			}
+			Integer[] tempClock = vClock.incrementClock(id);
+			LogEntry entry = new LogEntry(tempClock, LogEntryType.DISCONNECTED_UNIT, destinationAddress);
+			logger.writeAsText(entry, true);
+			Message replyMessage = new Message();
+			replyMessage.put("request", MessageRequest.disconnectedUnit);
+			replyMessage.put("unitAddress", destinationAddress);
+			replyMessage.put("vclock", tempClock);
+			
+			synchronizeWithAllBF(replyMessage);
+			break;
+		default:
+			break;
+		}
 		return null;
 	}
 
@@ -929,19 +1000,12 @@ public class BattleField implements IMessageReceivedHandler {
 						removeUnit(entry.getValue().getX(), entry.getValue().getY());
 					}
 					
-					//Message message = new Message();
-					//message.put("request", MessageRequest.gameState);
-					//message.put("gamestate", map);
-					//Puts position of the unit we are sending to in the map we are sending
-					//Unit u = entry.getValue();
-					//message.put("unit",  u);
-
-					//clientSocket = new SynchronizedClientSocket(message, entry.getKey(), null);
-					//clientSocket.sendMessage();	
 				}
-
-
-				
+				Message message = new Message();
+				message.put("request", MessageRequest.disconnectedBF);
+				message.put("serverAddress", new InetSocketAddress(url, port));
+				message.put("vclock", vClock.incrementClock(id));
+				synchronizeWithAllBF(message);
 				return false;
 			}
 			else {

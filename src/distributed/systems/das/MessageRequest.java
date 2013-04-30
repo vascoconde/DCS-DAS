@@ -6,7 +6,7 @@ package distributed.systems.das;
  * 
  */
 public enum MessageRequest {
-	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage, requestBFList, replyBFList, addBF, spawnAck, SyncAction, SyncActionResponse, SyncActionConfirm, gameState
+	spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage, requestBFList, replyBFList, addBF, disconnectedBF, disconnectedBFAck, spawnAck,disconnectedUnit,disconnectedUnitAck, SyncAction, SyncActionResponse, SyncActionConfirm, gameState
 }
 
 

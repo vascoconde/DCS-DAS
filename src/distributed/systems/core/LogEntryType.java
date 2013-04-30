@@ -18,8 +18,9 @@ public enum LogEntryType implements Serializable {
 	HEAL,
 	CONNECT_BF,
 	REMOVE,
+	DISCONNECTED_BF,
 	
 	// unknown log
-	UNKNOWN
+	UNKNOWN, DISCONNECTED_UNIT
 
 }
