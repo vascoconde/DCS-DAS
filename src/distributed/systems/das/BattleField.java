@@ -22,6 +22,7 @@ import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.VectorialClock;
+import distributed.systems.das.presentation.BattleFieldViewer;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
@@ -129,14 +130,16 @@ public class BattleField implements IMessageReceivedHandler {
 		}
 		logger = new LogManager(filename);
 		
-		System.out.println("Press ENTER to start generating units");
-		try {
-			System.in.read();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		System.out.println("Units will now start to connect!");
+		
+
+	}
+	
+	private void startExecution(int numberOfDragons, int numberOfPlayers) {
+
+		System.out.println("Units will now start to connect!");	
+		
+		this.generateDragons(numberOfDragons);
+		this.generatePlayeres(numberOfPlayers);
 		
 		//Updates to game state
 		new Thread(new Runnable() {
@@ -167,11 +170,11 @@ public class BattleField implements IMessageReceivedHandler {
 		}).start();
 		
 
-		//Updates to game state
+		//Checks  game state
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					Thread.sleep(10000L);//Time between gameState update is sent to units
+					Thread.sleep(10000L);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -203,7 +206,6 @@ public class BattleField implements IMessageReceivedHandler {
 				
 			}
 		}).start();
-
 	}
 
 	/**
@@ -299,7 +301,6 @@ public class BattleField implements IMessageReceivedHandler {
 		int originalY = tUnit.getY();
 		Unit unit = map[originalX][originalY];
 		if(unit == null || !unit.equals(tUnit)) return false;
-		// TODO Limitar movimentos diagonais
 		//if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) return false;
 		//System.out.println(originalX + " " + originalY + ":");
 		if (unit.getHitPoints() <= 0)
@@ -375,8 +376,8 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 
 			case replyBFList: {
-				HashSet<InetSocketAddress> bfList = (HashSet<InetSocketAddress>)msg.get("bfList");
-				for(InetSocketAddress address: bfList) {
+				HashMap<InetSocketAddress, Integer> bfList = (HashMap<InetSocketAddress, Integer>)msg.get("bfList");
+				for(InetSocketAddress address: bfList.keySet()) {
 					battlefields.put(address, 0);
 				}
 				for(InetSocketAddress address: battlefields.keySet()) {
@@ -950,6 +951,72 @@ public class BattleField implements IMessageReceivedHandler {
 		return false;
 	}
 
+	private void generateDragons(int numberOfDragons) {
+		/* All the dragons connect */
+		for(int i = 0; i < numberOfDragons; i++) {
+			/* Try picking a random spot */
+			int x, y, attempt = 0;
+			do {
+				x = (int)(Math.random() * BattleField.MAP_WIDTH);
+				y = (int)(Math.random() * BattleField.MAP_HEIGHT);
+				attempt++;
+			} while (this.getUnit(x, y) != null && attempt < 10);
+
+			// If we didn't find an empty spot, we won't add a new dragon
+			if (this.getUnit(x, y) != null) break;
+			
+			final int finalX = x;
+			final int finalY = y;
+
+			/* Create the new dragon in a separate
+			 * thread, making sure it does not 
+			 * block the system.
+			 */
+			final int temp = i;
+			
+			new Thread(new Runnable() {
+				public void run() {
+					new Dragon(finalX, finalY,"localhost", port + temp+1, "localhost", port);
+				}
+			}).start();
+
+		}	
+	
+	}
+	
+	private void generatePlayeres(int numberOfPlayers) {
+		for(int i = 0; i < numberOfPlayers; i++)
+		{
+			/* Once again, pick a random spot */
+			int x, y, attempt = 0;
+			do {
+				x = (int)(Math.random() * BattleField.MAP_WIDTH);
+				y = (int)(Math.random() * BattleField.MAP_HEIGHT);
+				attempt++;
+			} while (this.getUnit(x, y) != null && attempt < 10);
+
+			// If we didn't find an empty spot, we won't add a new player
+			if (this.getUnit(x, y) != null) break;
+
+			final int finalX = x;
+			final int finalY = y;
+			//System.out.println("CORE:" + finalX + " " +  finalY);
+
+			/* Create the new player in a separate
+			 * thread, making sure it does not 
+			 * block the system.
+			 */
+			final int temp = i;
+			new Thread(new Runnable() {
+				public void run() {
+					//TODO Ports have to be different for each player even when only connecting to different battlefields
+					//Now I'm just worried about all of them having different ports
+					new Player(finalX, finalY,"localhost", port + temp+100, "localhost", port);
+				}
+			}).start();	
+		}
+	}
+
 	
 	public static void main(String[] args) {
 
@@ -959,12 +1026,14 @@ public class BattleField implements IMessageReceivedHandler {
 			System.out.println(usage);
 			System.exit(1);
 		}
+		
+		BattleField bf = null;
 
 		if(args.length==6) {
 			if(args[5].equals("-r")) {
 				try {
 					System.out.println("Launching BattleField in RESTART mode.");
-					new BattleField(
+					bf = new BattleField(
 							Integer.parseInt(args[0]), 
 							args[1],
 							Integer.parseInt(args[2]),
@@ -985,7 +1054,7 @@ public class BattleField implements IMessageReceivedHandler {
 		else if(args.length==5) {
 			try {
 				System.out.println("Launching BattleField in NORMAL mode.");
-				new BattleField(
+				bf = new BattleField(
 						Integer.parseInt(args[0]), 
 						args[1],
 						Integer.parseInt(args[2]),
@@ -1002,7 +1071,7 @@ public class BattleField implements IMessageReceivedHandler {
 		else if(args.length==3) {
 			try {
 				System.out.println("Launching BattleField in NORMAL mode.");
-				new BattleField(
+				bf = new BattleField(
 						Integer.parseInt(args[0]), 
 						args[1],
 						Integer.parseInt(args[2]),
@@ -1012,7 +1081,27 @@ public class BattleField implements IMessageReceivedHandler {
 				System.out.println(usage);
 				System.exit(1);
 			}
+		} else {
+			
+			bf = null;
 		}
 		
+		final BattleField otherBf = bf;
+		new Thread(new Runnable() {
+			public void run() {
+				new BattleFieldViewer(otherBf);
+			}
+		}).start();
+		
+		System.out.println("Press ENTER to start generating units");
+		try {
+			System.in.read();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		//Number Dragons, Number Players
+		bf.startExecution(2, 5);
+
 	}
 }

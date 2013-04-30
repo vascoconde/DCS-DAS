@@ -45,9 +45,9 @@ public class Player extends Unit implements Runnable, Serializable {
 	 * @param bfUrl 
 	 * @param bfPort 
 	 */
-	public Player(int x, int y, int unitID, String url, int port, String bfUrl, int bfPort) {
+	public Player(int x, int y, String url, int port, String bfUrl, int bfPort) {
 		/* Initialize the hitpoints and attackpoints */
-		super(url, port, bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), unitID);
+		super(url, port, bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS));
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;

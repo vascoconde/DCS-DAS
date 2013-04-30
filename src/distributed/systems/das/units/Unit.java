@@ -78,7 +78,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * this specific unit.
 	 * @param unitID2 
 	 */
-	public Unit(String url, int port, String bfUrl, int bfPort, int maxHealth, int attackPoints, int unitID ) {
+	public Unit(String url, int port, String bfUrl, int bfPort, int maxHealth, int attackPoints ) {
 
 		battlefieldAddress = new InetSocketAddress(bfUrl, bfPort);
 		messageList = new HashMap<Integer, Message>();
@@ -90,7 +90,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.attackPoints = new Integer(attackPoints);
 
 		// Get a new unit id
-		this.unitID = unitID;
+		//this.unitID = unitID;
 
 		// Create a new socket
 		//clientSocket = new SynchronizedClientSocket(message, address, handler)
@@ -206,7 +206,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @return the unique unit identifier.
 	 */
 	public int getUnitID() {
-		return unitID;
+		return 0;
 	}
 
 	/**

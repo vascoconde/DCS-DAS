@@ -49,7 +49,7 @@ public class SynchronizedClientSocket extends Thread  {
 				//break;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")).getUnitID());
+				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")));
 				e1.printStackTrace();
 				//connTries++;
 				//if(connTries >= 2) return;
