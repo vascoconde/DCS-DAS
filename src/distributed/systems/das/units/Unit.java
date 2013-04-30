@@ -450,9 +450,14 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	private void updateUnitState(Unit u){
-		setPosition(u.getX(), u.getY());
-		this.attackPoints = u.getAttackPoints();
-		this.hitPoints = u.getHitPoints();
+		if(u == null) {
+			this.hitPoints = 0;
+		}
+		else {
+			setPosition(u.getX(), u.getY());
+			this.attackPoints = u.getAttackPoints();
+			this.hitPoints = u.getHitPoints();
+		}
 	}
 	
 	// Disconnects the unit from the battlefield by exiting its run-state
