@@ -48,14 +48,10 @@ public class SynchronizedClientSocket extends Thread  {
 				socket.connect(address);
 				//break;
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				message = handler.onExceptionThrown(message, address);
-				if((Unit)message.get("unit") != null)System.out.println("Exception:id "+((Unit)message.get("unit")));
 				e1.printStackTrace();
-				//connTries++;
-				//if(connTries >= 2) return;
+
 			}
-		//}
 		
 		try {
 			//Send Message
@@ -74,13 +70,8 @@ public class SynchronizedClientSocket extends Thread  {
 				socket.setSoTimeout(20000);
 				in = new ObjectInputStream(socket.getInputStream());
 				msg = (Message)in.readObject();
-				/*if (syncLog != null ) {
-					syncLog.setArrived();
-				}*/
-
 				handler.onMessageReceived(msg);
 				in.close();
-
 			} catch (SocketTimeoutException e) {
 				System.out.println("Timeout!!!!");
 				message = handler.onExceptionThrown(message, address);
@@ -89,7 +80,6 @@ public class SynchronizedClientSocket extends Thread  {
 				message = handler.onExceptionThrown(message, address);
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}else{
