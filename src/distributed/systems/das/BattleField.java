@@ -1,6 +1,7 @@
 package distributed.systems.das;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -127,7 +128,16 @@ public class BattleField implements IMessageReceivedHandler {
 			f.delete();
 		}
 		logger = new LogManager(filename);
-
+		
+		System.out.println("Press ENTER to start generating units");
+		try {
+			System.in.read();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println("Units will now start to connect!");
+		
 		//Updates to game state
 		new Thread(new Runnable() {
 			public void run() {
