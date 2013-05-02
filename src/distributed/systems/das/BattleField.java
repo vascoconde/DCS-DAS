@@ -190,6 +190,8 @@ public class BattleField implements IMessageReceivedHandler {
 						if(entry instanceof Dragon) dragon++;
 						if(entry instanceof Player) player++;
 					}
+					System.out.println("Units: "+ dragon + " Dragons and " + player + " Players");
+					
 					if(dragon == 0 || player == 0) {
 						System.out.println("GAME ENDED");
 						logger.readOrderedLog();
@@ -199,7 +201,6 @@ public class BattleField implements IMessageReceivedHandler {
 
 					}
 					
-					System.out.println("Units: "+ dragon + " Dragons and " + player + " Players");
 					
 					try {
 						Thread.sleep(1000L);
