@@ -709,7 +709,7 @@ public class BattleField implements IMessageReceivedHandler {
 			if (getUnit(x, y) == null){
 				
 				Unit unit = units.get((InetSocketAddress)msg.get("address"));
-
+				if(unit == null) break;
 				if(!((Math.abs(unit.getX() - x) <= 1 && Math.abs(unit.getY() - y) == 0)|| (Math.abs(unit.getY() - y) <= 1 && Math.abs(unit.getX() - x) == 0))) {
 					conflictFound = true;
 				}
