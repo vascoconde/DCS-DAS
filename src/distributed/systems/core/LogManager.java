@@ -27,7 +27,7 @@ public class LogManager {
 	public String[] getOrderedLogs() { return orderedLogs; }
 	public LogManager(String filename){ this.filename= filename; }
 	public String getFilename() { return filename; }
-	
+
 	public void cleanupStructures() {
 		orderedClocks = null;
 		orderedLogs = null;
@@ -86,23 +86,9 @@ public class LogManager {
 
 		cleanupStructures();
 		HashMap<int[], String> unorderedLogMap= readLogFromTextfile();
-		
+
 		Set<int[]> clock = unorderedLogMap.keySet();
 
-		/* 
-		 * Option 1
-		VectorialClock[] clocksV = new VectorialClock[clock.size()];
-		int index = 0;
-		for(int[] c : clock) {
-			clocksV[index] = new VectorialClock(c);
-			index++;
-		}
-		*/
-
-		/*
-		 * Option 2
-		 */
-		//int clocks[][] = (int[][])clock.toArray();
 		int clocks[][] = new int[clock.size()][clock.iterator().next().length];
 		int index = 0;
 		for(int[] c : clock) {
@@ -116,7 +102,7 @@ public class LogManager {
 		if(clocks.length == 0)
 			return;
 		int clockLenght = clocks[0].length;
-		
+
 		//VectorialClock tmpClock = null;
 		int[] tmpClock = null;
 		String aux = null;
@@ -147,12 +133,6 @@ public class LogManager {
 
 		orderedClocks = clocks;
 		orderedLogs = strings;
-		
-		/*
-		HashMap<int[], String> orderedLog = new HashMap<int[], String>();
-		for(int i = 0 ; i < clocksV.length; i++)
-			//Guardar os clocks algures...
-			*/
 
 	}
 
