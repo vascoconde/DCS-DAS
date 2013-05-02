@@ -139,7 +139,7 @@ public class BattleField implements IMessageReceivedHandler {
 		System.out.println("Units will now start to connect!");	
 		
 		this.generateDragons(numberOfDragons);
-		this.generatePlayeres(numberOfPlayers);
+		BattleField.generatePlayeres(numberOfPlayers, "localhost",port+100, url, port);
 		
 		//Updates to game state
 		new Thread(new Runnable() {
@@ -1059,19 +1059,20 @@ public class BattleField implements IMessageReceivedHandler {
 	
 	}
 	
-	private void generatePlayeres(int numberOfPlayers) {
+	public static void generatePlayeres(int numberOfPlayers, final String url, final int startingPort ,final String battlefieldUrl, final int battlefieldPort) {
 		for(int i = 0; i < numberOfPlayers; i++)
 		{
 			/* Once again, pick a random spot */
 			int x, y, attempt = 0;
-			do {
+			//do {
 				x = (int)(Math.random() * BattleField.MAP_WIDTH);
 				y = (int)(Math.random() * BattleField.MAP_HEIGHT);
 				attempt++;
-			} while (this.getUnit(x, y) != null && attempt < 10);
+			//} 
+			//while (this.getUnit(x, y) != null && attempt < 10);
 
 			// If we didn't find an empty spot, we won't add a new player
-			if (this.getUnit(x, y) != null) break;
+			//if (this.getUnit(x, y) != null) break;
 
 			final int finalX = x;
 			final int finalY = y;
@@ -1086,7 +1087,7 @@ public class BattleField implements IMessageReceivedHandler {
 				public void run() {
 					//TODO Ports have to be different for each player even when only connecting to different battlefields
 					//Now I'm just worried about all of them having different ports
-					new Player(finalX, finalY,"localhost", port + temp+100, "localhost", port);
+					new Player(finalX, finalY, url, startingPort + temp+100, battlefieldUrl, battlefieldPort);
 				}
 			}).start();	
 		}

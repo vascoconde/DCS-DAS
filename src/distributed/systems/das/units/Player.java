@@ -173,5 +173,21 @@ public class Player extends Unit implements Runnable, Serializable {
 		System.out.println("Exit Unit Loop");
 		//clientSocket.unRegister();
 	}
+	
+	public static void main(String[] args) {
 
+		if(args.length==5) {
+			try {
+				BattleField.generatePlayeres(Integer.parseInt(args[0]), args[1],Integer.parseInt(args[2]), args[3], Integer.parseInt(args[4]));				
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("numberOfPlayers url startingPort battlefieldUrl  battlefieldPort");
+				System.exit(1);
+			}
+		} 
+		
+		
+
+		
+	}
 }
