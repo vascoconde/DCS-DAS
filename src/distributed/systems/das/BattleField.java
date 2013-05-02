@@ -22,11 +22,9 @@ import distributed.systems.core.Message;
 import distributed.systems.core.SynchronizedClientSocket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.VectorialClock;
-import distributed.systems.das.presentation.BattleFieldViewer;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
-import distributed.systems.das.units.Unit.UnitType;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -174,7 +172,7 @@ public class BattleField implements IMessageReceivedHandler {
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					Thread.sleep(10000L);
+					Thread.sleep(2000L);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -182,8 +180,6 @@ public class BattleField implements IMessageReceivedHandler {
 				while(true) {
 					int dragon = 0;
 					int player = 0;
-					
-
 					
 					//System.out.println(units);
 					for( Unit entry : units.values()) {

@@ -30,8 +30,8 @@ public class Dragon extends Unit implements Runnable, Serializable {
 	public static final int MIN_HITPOINTS = 50;
 	public static final int MAX_HITPOINTS = 100;
 	// The minimum and maximum amount of hitpoints that a particular dragon has
-	public static final int MIN_ATTACKPOINTS = 4;
-	public static final int MAX_ATTACKPOINTS = 8;
+	public static final int MIN_ATTACKPOINTS = 5;
+	public static final int MAX_ATTACKPOINTS = 20;
 	
 	/**
 	 * Spawn a new dragon, initialize the 
