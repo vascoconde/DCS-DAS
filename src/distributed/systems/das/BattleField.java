@@ -180,15 +180,17 @@ public class BattleField implements IMessageReceivedHandler {
 				}
 
 				while(true) {
-					boolean dragon = false;
-					boolean player = false;
+					int dragon = 0;
+					int player = 0;
+					
 
+					
 					//System.out.println(units);
 					for( Unit entry : units.values()) {
-						if(entry instanceof Dragon) dragon = true;
-						if(entry instanceof Player) player = true;
+						if(entry instanceof Dragon) dragon++;
+						if(entry instanceof Player) player++;
 					}
-					if(!(dragon && player)) {
+					if(dragon == 0 || player == 0) {
 						System.out.println("GAME ENDED");
 						logger.readOrderedLog();
 						logger.writeOrderedLogToTextfile("_ordered");
@@ -196,8 +198,11 @@ public class BattleField implements IMessageReceivedHandler {
 						System.exit(1);
 
 					}
+					
+					System.out.println("Units: "+ dragon + " Dragons and " + player + " Players");
+					
 					try {
-						Thread.sleep(1000L);//Time between gameState update is sent to units
+						Thread.sleep(1000L);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -569,7 +574,7 @@ public class BattleField implements IMessageReceivedHandler {
 		//Write to log;
 		
 		Integer messageID = (Integer)msg.get("serverMessageID");
-		System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
+		//System.out.println("[S"+port+"] MessageID "+messageID+" Address "+(InetSocketAddress)msg.get("serverAddress")+"\nOutsideSize "+pendingOutsideActions.size()+"\n[S"+port+"]"+pendingOutsideActions);
 		ActionInfo removeAction = pendingOutsideActions.remove(new ActionID(messageID, (InetSocketAddress)msg.get("serverAddress")));			
 		if(removeAction != null) {
 			removeAction.timer.cancel();
