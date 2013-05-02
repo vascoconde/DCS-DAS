@@ -1095,25 +1095,25 @@ public class BattleField implements IMessageReceivedHandler {
 	
 	public static void main(String[] args) {
 
-		String usage = "Usage: BattleField <id> <hostname> <port> [<otherBFHostname> <otherBFPort> [-r]]";
+		String usage = "Usage: BattleField <id> <nDragons> <nPlayers> <hostname> <port> [<otherBFHostname> <otherBFPort> [-r]]";
 
-		if(args.length != 3 && args.length != 5 && args.length != 6) {
+		if(args.length != 5 && args.length != 7 && args.length != 8) {
 			System.out.println(usage);
 			System.exit(1);
 		}
 		
 		BattleField bf = null;
 
-		if(args.length==6) {
-			if(args[5].equals("-r")) {
+		if(args.length==8) {
+			if(args[7].equals("-r")) {
 				try {
 					System.out.println("Launching BattleField in RESTART mode.");
 					bf = new BattleField(
 							Integer.parseInt(args[0]), 
-							args[1],
-							Integer.parseInt(args[2]),
 							args[3],
 							Integer.parseInt(args[4]),
+							args[5],
+							Integer.parseInt(args[6]),
 							true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1126,15 +1126,15 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 		}
 
-		else if(args.length==5) {
+		else if(args.length==7) {
 			try {
 				System.out.println("Launching BattleField in NORMAL mode.");
 				bf = new BattleField(
 						Integer.parseInt(args[0]), 
-						args[1],
-						Integer.parseInt(args[2]),
 						args[3],
 						Integer.parseInt(args[4]),
+						args[5],
+						Integer.parseInt(args[6]),
 						false);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1143,13 +1143,13 @@ public class BattleField implements IMessageReceivedHandler {
 			}
 		}
 		
-		else if(args.length==3) {
+		else if(args.length==5) {
 			try {
 				System.out.println("Launching BattleField in NORMAL mode.");
 				bf = new BattleField(
 						Integer.parseInt(args[0]), 
-						args[1],
-						Integer.parseInt(args[2]),
+						args[3],
+						Integer.parseInt(args[4]),
 						false);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1176,7 +1176,7 @@ public class BattleField implements IMessageReceivedHandler {
 			e1.printStackTrace();
 		}
 		//Number Dragons, Number Players
-		bf.startExecution(2, 2);
+		bf.startExecution(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 
 	}
 }
