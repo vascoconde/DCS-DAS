@@ -1162,12 +1162,13 @@ public class BattleField implements IMessageReceivedHandler {
 			bf = null;
 		}
 		
-		final BattleField otherBf = bf;
+		/*final BattleField otherBf = bf;
 		new Thread(new Runnable() {
 			public void run() {
 				new BattleFieldViewer(otherBf);
 			}
 		}).start();
+		*/
 		
 		System.out.println("Press ENTER to start generating units");
 		try {
