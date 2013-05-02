@@ -47,7 +47,7 @@ public class Player extends Unit implements Runnable, Serializable {
 	 */
 	public Player(int x, int y, String url, int port, String bfUrl, int bfPort) {
 		/* Initialize the hitpoints and attackpoints */
-		super(url, port, bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS));
+		super(url, port, bfUrl, bfPort, (int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), MIN_ATTACKPOINTS + (int)(Math.random() * MAX_ATTACKPOINTS));
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
@@ -87,7 +87,9 @@ public class Player extends Unit implements Runnable, Serializable {
 			try {			
 				/* Sleep while the player is considering its next move */
 				//Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
-				Thread.currentThread().sleep((int)(500));
+				//Thread.currentThread().sleep((int)(500));
+				
+				Thread.currentThread().sleep(500 + (int)(Math.random()*300));
 
 				/* Stop if the player runs out of hitpoints */
 				if (getHitPoints() <= 0)
