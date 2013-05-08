@@ -140,6 +140,7 @@ public class BattleField implements IMessageReceivedHandler {
 		BattleField.generatePlayeres(numberOfPlayers, "localhost",port+100, url, port);
 		
 		//Updates to game state
+		final BattleField bf = this;
 		new Thread(new Runnable() {
 			public void run() {
 				SynchronizedClientSocket clientSocket;
@@ -154,7 +155,7 @@ public class BattleField implements IMessageReceivedHandler {
 						Unit u = entry.getValue();
 						message.put("unit",  u);
 
-						clientSocket = new SynchronizedClientSocket(message, entry.getKey(), null);
+						clientSocket = new SynchronizedClientSocket(message, entry.getKey(), bf);
 						clientSocket.sendMessage();	
 					}
 
